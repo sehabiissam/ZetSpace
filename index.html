@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3DRIP | LUXURY STREETWEAR 2026</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-glow"></div>
+
+    <!-- Background Canvas for Particles -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="#home" class="nav-logo">3DRIP</a>
+            <ul class="nav-links">
+                <li><a href="#home">HOME</a></li>
+                <li><a href="#shop">SHOP</a></li>
+                <li><a href="#about">ABOUT</a></li>
+                <li><a href="#testimonials">REVIEWS</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="icon-btn search-trigger" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button class="icon-btn cart-trigger" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="menu-close" id="menu-close">&times;</button>
+        <div class="mobile-menu-content">
+            <ul class="mobile-nav-links">
+                <li><a href="#home">HOME</a></li>
+                <li><a href="#shop">SHOP</a></li>
+                <li><a href="#about">ABOUT</a></li>
+                <li><a href="#testimonials">REVIEWS</a></li>
+                <li><a href="#cart" class="mobile-cart-link"><i class="fa-solid fa-bag-shopping"></i> CART (<span class="cart-count-mobile">0</span>)</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-bg">
+            <div class="hero-overlay"></div>
+            <!-- Placeholder for cinematic background -->
+            <img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=1920" alt="3DRIP Cinematic Background" class="hero-img">
+        </div>
+        <div class="container hero-content">
+            <div class="reveal">
+                <span class="badge">EST. 2026 / ALGERIA</span>
+                <h1 class="hero-title">3DRIP <span class="accent">2026</span> DROP</h1>
+                <p class="hero-subtitle">BUILT FOR THE STREETS. DESIGNED FOR THE FUTURE.</p>
+                <div class="hero-btns">
+                    <a href="#shop" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> SHOP NOW</a>
+                    <a href="#about" class="btn btn-outline"><i class="fa-solid fa-earth-africa"></i> EXPLORE</a>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>SCROLL</span>
+            <div class="line"></div>
+        </div>
+    </section>
+
+    <!-- Trust Features -->
+    <section class="features" id="features">
+        <div class="container features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                <h3>FAST DELIVERY</h3>
+                <p>Express shipping across all Algeria.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-gem"></i></div>
+                <h3>PREMIUM QUALITY</h3>
+                <p>High-end materials & stitching.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>SECURE PAYMENT</h3>
+                <p>100% safe checkout process.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section id="featured" class="collection section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">FEATURED <span class="accent">DRIPS</span></h2>
+                <p class="section-desc">Limited pieces from our latest drop. Select entries only.</p>
+            </div>
+            <div class="product-grid">
+                <!-- Product 1 -->
+                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900" data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600" alt="Futuristic Hoodie">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">HOODIE</span>
+                            <span class="price">8,900 DZD</span>
+                        </div>
+                        <h3 class="product-name">VIOLET VOID OVERSIZED</h3>
+                    </div>
+                </div>
+                <!-- Product 2 -->
+                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500" data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600" alt="Cyber Tee">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">T-SHIRT</span>
+                            <span class="price">4,500 DZD</span>
+                        </div>
+                        <h3 class="product-name">CYBERPUNK GRAPHIC TEE</h3>
+                    </div>
+                </div>
+                <!-- Product 3 -->
+                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200" data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600" alt="Cargo Pants">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">BOTTOMS</span>
+                            <span class="price">7,200 DZD</span>
+                        </div>
+                        <h3 class="product-name">NEON TRACK CARGOS</h3>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 4rem;">
+                <a href="#shop" class="btn btn-outline">VIEW ALL DROPS</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shop / Collections -->
+    <section id="shop" class="collection section view">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">FULL <span class="accent">CATALOG</span></h2>
+                <p class="section-desc">Handcrafted streetwear essentials for the modern pioneer.</p>
+            </div>
+            <div class="product-grid" id="main-product-grid">
+                <!-- Products will be dynamically generated or stay static -->
+                <!-- Product 1 -->
+                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900" data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600" alt="Futuristic Hoodie">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">HOODIE</span>
+                            <span class="price">8,900 DZD</span>
+                        </div>
+                        <h3 class="product-name">VIOLET VOID OVERSIZED</h3>
+                    </div>
+                </div>
+                <!-- Product 2 -->
+                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500" data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600" alt="Cyber Tee">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">T-SHIRT</span>
+                            <span class="price">4,500 DZD</span>
+                        </div>
+                        <h3 class="product-name">CYBERPUNK GRAPHIC TEE</h3>
+                    </div>
+                </div>
+                <!-- Product 3 -->
+                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200" data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600" alt="Cargo Pants">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">BOTTOMS</span>
+                            <span class="price">7,200 DZD</span>
+                        </div>
+                        <h3 class="product-name">NEON TRACK CARGOS</h3>
+                    </div>
+                </div>
+                <!-- Product 4 -->
+                <div class="product-card" data-id="4" data-name="URBAN EXPLORER SHELL" data-price="12500" data-img="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600" alt="Tech Jacket">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">OUTERWEAR</span>
+                            <span class="price">12,500 DZD</span>
+                        </div>
+                        <h3 class="product-name">URBAN EXPLORER SHELL</h3>
+                    </div>
+                </div>
+                <!-- Product 5 (New) -->
+                <div class="product-card" data-id="5" data-name="NIGHTHAWK STRIKE CAP" data-price="3200" data-img="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600" alt="Street Cap">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">ACCESSORIES</span>
+                            <span class="price">3,200 DZD</span>
+                        </div>
+                        <h3 class="product-name">NIGHTHAWK STRIKE CAP</h3>
+                    </div>
+                </div>
+                <!-- Product 6 (New) -->
+                <div class="product-card" data-id="6" data-name="FUTURA MESH SNEAKERS" data-price="18900" data-img="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600">
+                    <div class="product-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600" alt="Futuristic Sneakers">
+                        <div class="product-overlay">
+                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-meta">
+                            <span class="label">FOOTWEAR</span>
+                            <span class="price">18,900 DZD</span>
+                        </div>
+                        <h3 class="product-name">FUTURA MESH SNEAKERS</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Section -->
+    <section id="cart" class="cart-view section view">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">YOUR <span class="accent">DRIP</span> BAG</h2>
+                <p class="section-desc">Review your selection before entering the grid.</p>
+            </div>
+            <div class="cart-container">
+                <div class="cart-items" id="cart-items-list">
+                    <!-- Dynamic Cart Items -->
+                    <p class="empty-msg">YOUR BAG IS EMPTY. START EXPLORING.</p>
+                </div>
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>SUBTOTAL</span>
+                        <span id="subtotal">0 DZD</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>DELIVERY</span>
+                        <span>500 DZD</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>TOTAL</span>
+                        <span id="total-price" class="accent">500 DZD</span>
+                    </div>
+                    <button class="btn btn-primary btn-full checkout-trigger">ORDER NOW</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Checkout Modal -->
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title">SECURE <span class="accent">CHECKOUT</span></h2>
+                <p>Complete your deployment in the streets.</p>
+            </div>
+            <form class="checkout-form" id="order-form">
+                <div class="form-group">
+                    <label>FULL NAME</label>
+                    <input type="text" placeholder="ENTER YOUR NAME" required>
+                </div>
+                <div class="form-group">
+                    <label>EMAIL ADDRESS</label>
+                    <input type="email" placeholder="ENTER YOUR EMAIL" required>
+                </div>
+                <div class="form-group">
+                    <label>SHIPPING ADDRESS</label>
+                    <textarea placeholder="FULL ADDRESS (CITY, WILAYA)" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">CONFIRM ORDER</button>
+            </form>
+            <div class="order-success" id="order-success">
+                <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <h3>DEPLOYMENT SUCCESSFUL</h3>
+                <p>Your order has been logged into the matrix. Expect a call for confirmation shortly.</p>
+                <button class="btn btn-outline btn-full back-to-shop">BACK TO SHOP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="modal-overlay" id="admin-gate-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="admin-modal-close">&times;</button>
+            <div class="section-header">
+                <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
+                <h2 class="section-title">ADMIN <span class="accent">LOGIN</span></h2>
+                <p class="section-desc">AUTHENTICATION REQUIRED FOR SYSTEM OVERRIDE.</p>
+            </div>
+            <form id="admin-login-form" class="checkout-form">
+                <div class="form-group">
+                    <label>ADMIN EMAIL</label>
+                    <input type="email" id="admin-email" placeholder="AUTHORIZED EMAIL" required>
+                </div>
+                <div class="form-group">
+                    <label>SYSTEM ACCESS KEY</label>
+                    <input type="password" id="admin-password" placeholder="ENCRYPTION KEY" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-lock"></i> SYSTEM LOGIN</button>
+                <p id="login-error" class="error-msg" style="display: none; color: #ff4d4d; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin View -->
+    <section id="admin" class="admin-view section view">
+        <div class="container admin-container">
+            <aside class="admin-sidebar">
+                <div class="admin-user">
+                    <div class="user-avatar"><i class="fa-solid fa-user-shield"></i></div>
+                    <div>
+                        <p class="user-name">ADMIN COMMAND</p>
+                        <p class="user-role">SYSTEM OWNER</p>
+                    </div>
+                </div>
+                <nav class="admin-nav">
+                    <button class="admin-nav-btn active" data-tab="products"><i class="fa-solid fa-box"></i> PRODUCTS</button>
+                    <button class="admin-nav-btn" data-tab="orders"><i class="fa-solid fa-receipt"></i> ORDERS</button>
+                    <button class="admin-nav-btn" data-tab="trash"><i class="fa-solid fa-trash-can"></i> TRASH</button>
+                    <button class="admin-nav-btn" data-tab="logs"><i class="fa-solid fa-clipboard-list"></i> LOGS</button>
+                    <button class="admin-nav-btn" data-tab="security"><i class="fa-solid fa-shield-halved"></i> SECURITY</button>
+                    <button class="admin-nav-btn logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> LOGOUT</button>
+                </nav>
+            </aside>
+
+            <main class="admin-main">
+                <!-- Products Tab -->
+                <div id="admin-products" class="admin-tab active">
+                    <div class="admin-header">
+                        <h2>PRODUCT <span class="accent">DATABASE</span></h2>
+                        <button class="btn btn-mini" id="add-product-trigger"><i class="fa-solid fa-plus"></i> ADD PRODUCT</button>
+                    </div>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>IMG</th>
+                                    <th>NAME</th>
+                                    <th>CATEGORY</th>
+                                    <th>PRICE</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-product-list">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="admin-orders" class="admin-tab">
+                    <div class="admin-header">
+                        <h2>ORDER <span class="accent">LOGS</span></h2>
+                    </div>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>CUSTOMER</th>
+                                    <th>ITEMS</th>
+                                    <th>TOTAL</th>
+                                    <th>STATUS</th>
+                                    <th>DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-order-list">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Security Tab -->
+                <div id="admin-security" class="admin-tab">
+                    <div class="admin-header">
+                        <h2><i class="fa-solid fa-fingerprint"></i> SYSTEM <span class="accent">PROTECTION</span></h2>
+                    </div>
+                    <div class="security-card">
+                        <div class="security-info">
+                            <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--accent); margin-bottom: 2rem; display: block;"></i>
+                            <h3 style="margin-bottom: 1rem;">FIREBASE SHIELD ACTIVE</h3>
+                            <p style="opacity: 0.7; line-height: 1.6;">Identity verification is now managed by Google Identity Platform & Firebase Auth. The current system command is locked to authorized agent emails only.</p>
+                            <p style="margin-top: 1rem; color: var(--accent); font-weight: 700;">AUTHORIZED AGENT: sehabiissam8@gmail.com</p>
+                        </div>
+                        <form id="security-update-form" class="checkout-form" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+                            <p class="admin-note" style="margin-bottom: 1.5rem; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-key"></i> UPDATE SYSTEM ACCESS KEY</p>
+                            <div class="form-group">
+                                <label>CURRENT ACCESS KEY</label>
+                                <input type="password" id="current-pass" placeholder="CONFIRM CURRENT KEY" required>
+                            </div>
+                            <div class="form-group">
+                                <label>NEW ACCESS KEY</label>
+                                <input type="password" id="new-pass" placeholder="MIN 8 CHARACTERS" required minlength="8">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">EXECUTE ENCRYPTION UPDATE</button>
+                            <p id="security-update-msg" style="display: none; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;"></p>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div id="admin-logs" class="admin-tab">
+                    <div class="admin-header">
+                        <h2>ACTIVITY <span class="accent">LOGS</span></h2>
+                    </div>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>PRODUCT</th>
+                                    <th>PRICE</th>
+                                    <th>DATE/TIME</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-log-list">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Trash Tab -->
+                <div id="admin-trash" class="admin-tab">
+                    <div class="admin-header">
+                        <h2>SYSTEM <span class="accent">RECOVERY</span></h2>
+                        <p class="admin-note"><i class="fa-solid fa-clock-rotate-left"></i> DELETED GEAR IS STORED HERE FOR 30 DAYS BEFORE PERMANENT WIPEOUT.</p>
+                    </div>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>IMG</th>
+                                    <th>NAME</th>
+                                    <th>PRICE</th>
+                                    <th>DELETED ON</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-trash-list">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal-content modal-compact">
+            <div class="modal-header">
+                <div class="login-icon" style="color: #ff4d4d;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h2 class="modal-title">TERMINATE <span class="accent">ENTRY?</span></h2>
+                <p>This action will move this gear to the trash system.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-btn" style="background: #ff4d4d; border-color: #ff4d4d;">DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permanent Wipe Modal -->
+    <div class="modal-overlay" id="wipe-modal">
+        <div class="modal-content modal-compact">
+            <div class="modal-header">
+                <div class="login-icon" style="color: #ff0000; filter: drop-shadow(0 0 10px #ff0000);"><i class="fa-solid fa-skull"></i></div>
+                <h2 class="modal-title">PERMANENT <span class="accent">WIPEOUT?</span></h2>
+                <p>This will erase the product from the mainframe permanently. This action is irreversible.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-wipe-btn" style="background: #ff0000; border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.4);">WIPE FOREVER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Management Modal -->
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title" id="product-modal-title">ADD <span class="accent">PRODUCT</span></h2>
+                <p>Register new gear into the 3DRIP ecosystem.</p>
+            </div>
+            <form class="checkout-form" id="product-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>PRODUCT NAME</label>
+                    <input type="text" id="p-name" placeholder="E.G. NOCTURNAL HOODIE" required>
+                </div>
+                <div class="form-group">
+                    <label>CATEGORY</label>
+                    <select id="p-category" class="admin-select">
+                        <option value="HOODIE">HOODIE</option>
+                        <option value="T-SHIRT">T-SHIRT</option>
+                        <option value="BOTTOMS">BOTTOMS</option>
+                        <option value="OUTERWEAR">OUTERWEAR</option>
+                        <option value="ACCESSORIES">ACCESSORIES</option>
+                        <option value="FOOTWEAR">FOOTWEAR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>PRICE (DZD)</label>
+                    <input type="number" id="p-price" placeholder="8900" required>
+                </div>
+                <div class="form-group">
+                    <label>IMAGE SOURCE</label>
+                    <div class="image-toggle-container" style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="button" class="btn btn-mini product-img-mode active" data-mode="url" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">SOURCE URL</button>
+                        <button type="button" class="btn btn-mini product-img-mode" data-mode="upload" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">LOCAL UPLOAD</button>
+                    </div>
+                    
+                    <div id="p-img-url-wrapper">
+                        <input type="url" id="p-img" placeholder="HTTPS://GEAR-IMAGE.JPG" style="margin-bottom: 0;">
+                    </div>
+                    
+                    <div id="p-img-upload-wrapper" style="display: none;">
+                        <div class="upload-dropzone" id="image-dropzone" style="border: 2px border-dashed rgba(255,255,255,0.1); border-radius: 8px; padding: 25px 15px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; background: rgba(255,255,255,0.02);">
+                            <input type="file" id="p-img-file" accept="image/*" style="opacity: 0; position: absolute; inset: 0; cursor: pointer; width: 100%; height: 100%;">
+                            <div style="pointer-events: none;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.4rem; color: var(--accent); margin-bottom: 10px; opacity: 0.8;"></i>
+                                <p style="font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">DRAG GEAR OR <span class="accent">BROWSE</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="p-img-preview-container" style="margin-top: 15px; display: none; text-align: center; border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                        <p style="font-size: 0.6rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase;">PREVIEW</p>
+                        <img id="p-img-preview" src="" alt="PREVIEW" style="max-width: 100%; max-height: 150px; border-radius: 4px; object-fit: contain;">
+                        <button type="button" id="remove-preview" class="btn btn-mini" style="margin-top: 5px; color: #ff4d4d; border-color: rgba(255,77,77,0.2);">REMOVE</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
+                    <button type="submit" class="btn btn-primary btn-full" id="product-save-btn">SAVE PRODUCT</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section id="about" class="about section">
+        <div class="about-bg"></div>
+        <div class="container about-content">
+            <h2 class="about-title scale-up">MORE THAN A BRAND.<br><span class="accent">A MOVEMENT.</span></h2>
+            <p class="about-text">Born in the heart of urban Algiers, 3DRIP merges avant-garde technology with raw street culture. We don't just follow trends—we redefine them for the next generation.</p>
+            <div class="about-stats">
+                <div class="stat">
+                    <i class="fa-solid fa-users-rays" style="color: var(--accent); font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
+                    <span class="stat-num">100K+</span>
+                    <span class="stat-label">COMMUNITY</span>
+                </div>
+                <div class="stat">
+                    <i class="fa-solid fa-star" style="color: #ffcc00; font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
+                    <span class="stat-num">4.9/5</span>
+                    <span class="stat-label">RATING</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">CLIENT <span class="accent">COMMANDS</span></h2>
+                <p class="section-desc">LOGGED FEEDBACK FROM THE GRID'S TOP RECOGNIZED AGENTS.</p>
+            </div>
+            <div class="testimonial-slider">
+                <div class="testimonial-track">
+                    <!-- Group 1 -->
+                    <div class="testimonial-group">
+                        <!-- Testimonial 1 -->
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" alt="Agent Avatar" class="testimonial-avatar">
+                                <div class="testimonial-meta">
+                                    <h4>AHMED K.</h4>
+                                    <div class="stars">★★★★★</div>
+                                </div>
+                            </div>
+                            <p class="testimonial-text">"THE QUALITY IS OUT OF THIS WORLD. BEST STREETWEAR IN ALGERIA, HANDS DOWN. THE VIOLET VOID HOODIE IS A MASTERPIECE."</p>
+                            <div class="testimonial-id">AGENT_ID: 0X9A2B</div>
+                        </div>
+                        <!-- Testimonial 2 -->
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150" alt="Agent Avatar" class="testimonial-avatar">
+                                <div class="testimonial-meta">
+                                    <h4>SARAH M.</h4>
+                                    <div class="stars">★★★★★</div>
+                                </div>
+                            </div>
+                            <p class="testimonial-text">"FAST DELIVERY AND THE FIT IS PERFECT. THE CYBERPUNK VIBE IS REAL. DEFINITELY MY GO-TO FOR FUTURE DROPS."</p>
+                            <div class="testimonial-id">AGENT_ID: 0XF3C1</div>
+                        </div>
+                        <!-- Testimonial 3 -->
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" alt="Agent Avatar" class="testimonial-avatar">
+                                <div class="testimonial-meta">
+                                    <h4>KARIM L.</h4>
+                                    <div class="stars">★★★★☆</div>
+                                </div>
+                            </div>
+                            <p class="testimonial-text">"UNIQUE DESIGNS THAT YOU CAN'T FIND ANYWHERE ELSE. 3DRIP IS REDEFINING THE ALGERIAN STREETWEAR MOVEMENT."</p>
+                            <div class="testimonial-id">AGENT_ID: 0X7D88</div>
+                        </div>
+                    </div>
+                    <!-- Group 2 (Duplicate for Loop) -->
+                    <div class="testimonial-group">
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" alt="Agent Avatar" class="testimonial-avatar">
+                                <div class="testimonial-meta">
+                                    <h4>AHMED K.</h4>
+                                    <div class="stars">★★★★★</div>
+                                </div>
+                            </div>
+                            <p class="testimonial-text">"THE QUALITY IS OUT OF THIS WORLD. BEST STREETWEAR IN ALGERIA, HANDS DOWN. THE VIOLET VOID HOODIE IS A MASTERPIECE."</p>
+                            <div class="testimonial-id">AGENT_ID: 0X9A2B</div>
+                        </div>
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150" alt="Agent Avatar" class="testimonial-avatar">
+                                <div class="testimonial-meta">
+                                    <h4>SARAH M.</h4>
+                                    <div class="stars">★★★★★</div>
+                                </div>
+                            </div>
+                            <p class="testimonial-text">"FAST DELIVERY AND THE FIT IS PERFECT. THE CYBERPUNK VIBE IS REAL. DEFINITELY MY GO-TO FOR FUTURE DROPS."</p>
+                            <div class="testimonial-id">AGENT_ID: 0XF3C1</div>
+                        </div>
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" alt="Agent Avatar" class="testimonial-avatar">
+                                <div class="testimonial-meta">
+                                    <h4>KARIM L.</h4>
+                                    <div class="stars">★★★★☆</div>
+                                </div>
+                            </div>
+                            <p class="testimonial-text">"UNIQUE DESIGNS THAT YOU CAN'T FIND ANYWHERE ELSE. 3DRIP IS REDEFINING THE ALGERIAN STREETWEAR MOVEMENT."</p>
+                            <div class="testimonial-id">AGENT_ID: 0X7D88</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="container newsletter-content">
+            <h3>STAY IN THE DRIP.</h3>
+            <p>Get early access to exclusive drops and secret events.</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="YOUR EMAIL ADDRESS" required>
+                <button type="submit" class="btn btn-primary">JOIN</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">3DRIP</div>
+                <p>Pioneering the future of Algerian streetwear. Built for those who refuse to stay in the shadows.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="footer-nav">
+                <h4>QUICK LINKS</h4>
+                <ul>
+                    <li><a href="#home">HOME</a></li>
+                    <li><a href="#shop">COLLECTIONS</a></li>
+                    <li><a href="#about">THE MOVEMENT</a></li>
+                    <li><a href="#testimonials">REVIEWS</a></li>
+                    <li><a href="#admin-gate" class="admin-access-link">SYSTEM COMMAND</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>CONTACT</h4>
+                <p>support@3drip.dz</p>
+                <p>Algiers, Algeria</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 3DRIP BOUTIQUE ONLINE. ALL RIGHTS RESERVED.</p>
+            <p>DESIGNED FOR THE FUTURE.</p>
+        </div>
+    </footer>
+
+    <!-- Script -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>

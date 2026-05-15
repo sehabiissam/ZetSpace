@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'sehabiissam8@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Products
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidProduct(incoming());
+      allow update: if isAdmin() && isValidProduct(incoming());
+      allow delete: if isAdmin();
+      
+      function isValidProduct(data) {
+        return data.keys().hasAll(['name', 'price', 'img', 'category', 'createdAt']) &&
+               data.name is string && data.name.size() <= 100 &&
+               data.price is number && data.price >= 0 &&
+               data.img is string && data.img.size() <= 1500 &&
+               data.category is string &&
+               data.createdAt is string;
+      }
+    }
+
+    // Orders
+    match /orders/{orderId} {
+      allow read, write: if true;
+
+      function isValidOrder(data) {
+        return data.keys().hasAll(['customer', 'items', 'total', 'status', 'createdAt']) &&
+               data.customer is map &&
+               data.customer.name is string && data.customer.name.size() <= 100 &&
+               data.customer.email is string && data.customer.email.size() <= 100 &&
+               data.customer.address is string && data.customer.address.size() <= 500 &&
+               data.items is list && data.items.size() > 0 &&
+               data.total is number &&
+               data.status == 'PENDING' &&
+               data.createdAt is string;
+      }
+    }
+
+    // Logs
+    match /logs/{logId} {
+      allow read, list, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Trash
+    match /trash/{trashId} {
+      allow read, list, write: if isAdmin();
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId && incoming().role == 'customer';
+      allow update: if isAdmin();
+    }
+  }
+}
