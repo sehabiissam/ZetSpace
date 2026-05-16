@@ -9,9 +9,11 @@ import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot
 import firebaseConfig from './firebase-applet-config.json';
 
 // Initialize Firebase
+console.log('[SYSTEM] INITIALIZING FIREBASE MAINFRAME...');
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 const auth = getAuth(app);
+console.log('[SYSTEM] FIREBASE CORE ONLINE.');
 
 // Connectivity Test
 async function testConnection() {
@@ -25,36 +27,58 @@ async function testConnection() {
 }
 testConnection();
 
-// Operation Types for error handling
-const OperationType = {
-    CREATE: 'create',
-    UPDATE: 'update',
-    DELETE: 'delete',
-    LIST: 'list',
-    GET: 'get',
-    WRITE: 'write',
-};
-
-function handleFirestoreError(error, operationType, path) {
-    const errInfo = {
-        error: error instanceof Error ? error.message : String(error),
-        authInfo: {
-            userId: auth.currentUser?.uid,
-            email: auth.currentUser?.email,
-            emailVerified: auth.currentUser?.emailVerified,
-        },
-        operationType,
-        path
+document.addEventListener('DOMContentLoaded', () => {
+    // Operation Types for error handling
+    const OperationType = {
+        CREATE: 'create',
+        UPDATE: 'update',
+        DELETE: 'delete',
+        LIST: 'list',
+        GET: 'get',
+        WRITE: 'write',
     };
-    console.error('Firestore Error: ', JSON.stringify(errInfo));
-    // throw new Error(JSON.stringify(errInfo)); // Optional: keep app running or show toast
-    const toastContainer = document.getElementById('toast-container');
-    if (toastContainer && typeof showToast === 'function') {
+
+    const showToast = (msg, actionText, onAction) => {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <i class="fa-solid fa-bell" style="color: var(--accent);"></i>
+            <span class="toast-msg">${msg}</span>
+            ${actionText ? `<button class="undo-btn">${actionText}</button>` : ''}
+        `;
+        
+        if (onAction) {
+            toast.querySelector('.undo-btn').addEventListener('click', () => {
+                onAction();
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 400);
+            });
+        }
+
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 400);
+        }, 6000); // 6s duration
+    };
+
+    function handleFirestoreError(error, operationType, path) {
+        const errInfo = {
+            error: error instanceof Error ? error.message : String(error),
+            authInfo: {
+                userId: auth.currentUser?.uid,
+                email: auth.currentUser?.email,
+                emailVerified: auth.currentUser?.emailVerified,
+            },
+            operationType,
+            path
+        };
+        console.error('Firestore Error: ', JSON.stringify(errInfo));
         showToast(`ERROR: ${error.message || 'PERMISSION DENIED'}`);
     }
-}
 
-document.addEventListener('DOMContentLoaded', () => {
     // Current state held in memory (synced with Firestore)
     let state = {
         products: [],
@@ -354,20 +378,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }, (err) => handleFirestoreError(err, OperationType.LIST, 'products'));
 
         // Orders Listener
-        onSnapshot(collection(db, 'orders'), (snapshot) => {
-            console.log('[ORDERS_RECEIVED]', snapshot.docs.length);
+        const ordersRef = collection(db, 'orders');
+        const ordersQuery = query(ordersRef, orderBy('createdAt', 'desc'));
+        
+        onSnapshot(ordersQuery, (snapshot) => {
+            console.log('[SYSTEM] ORDERS_SYNC_RECEIVED:', snapshot.docs.length);
 
             state.orders = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
 
+            console.log('[SYSTEM] STATE_ORDERS_UPDATED:', state.orders);
+
             if (Firewall.isAdmin()) {
-                console.log('[ADMIN_ORDER_RENDER]');
+                console.log('[SYSTEM] ADMIN_DETECTED -> EXECUTING_ORDER_RENDER');
                 renderAdmin();
             }
         }, (err) => {
-            console.error('[ORDERS_LISTENER_ERROR]', err);
+            console.error('[SYSTEM] ORDERS_LISTENER_CRITICAL_ERROR:', err);
             if (Firewall.isAdmin()) handleFirestoreError(err, OperationType.LIST, 'orders');
         });
 
@@ -519,9 +548,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let viewingCart = false;
 
     const updateCartUI = () => {
-        const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
-        if (cartBadge) cartBadge.textContent = totalQty;
-        if (cartBadgeMobile) cartBadgeMobile.textContent = totalQty;
+        const totalQuantity = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
+        if (cartBadge) cartBadge.textContent = totalQuantity;
+        if (cartBadgeMobile) cartBadgeMobile.textContent = totalQuantity;
         if (cartBadge) {
             cartBadge.style.transform = 'scale(1.5)';
             setTimeout(() => cartBadge.style.transform = 'scale(1)', 200);
@@ -540,7 +569,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let subtotal = 0;
         cartItemsList.innerHTML = '';
         cart.forEach((item, index) => {
-            subtotal += item.price * item.qty;
+            const itemQty = item.quantity || 1;
+            subtotal += item.price * itemQty;
             cartItemsList.insertAdjacentHTML('beforeend', `
                 <div class="cart-item">
                     <img src="${item.img}" alt="${item.name}" class="cart-item-img">
@@ -551,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="cart-item-controls">
                         <button class="qty-btn" data-index="${index}" data-delta="-1"><i class="fa-solid fa-minus"></i></button>
-                        <span>${item.qty}</span>
+                        <span>${itemQty}</span>
                         <button class="qty-btn" data-index="${index}" data-delta="1"><i class="fa-solid fa-plus"></i></button>
                     </div>
                 </div>
@@ -567,8 +597,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('remove-btn')) { cart.splice(idx, 1); updateCartUI(); }
             else if (e.target.classList.contains('qty-btn')) {
                 const delta = parseInt(e.target.dataset.delta);
-                cart[idx].qty += delta;
-                if (cart[idx].qty < 1) cart[idx].qty = 1;
+                const currentQty = cart[idx].quantity || 1;
+                cart[idx].quantity = currentQty + delta;
+                if (cart[idx].quantity < 1) cart[idx].quantity = 1;
                 updateCartUI();
             }
         });
@@ -577,9 +608,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', (e) => {
         if (e.target.classList.contains('add-to-cart')) {
             const card = e.target.closest('.product-card');
-            const product = { id: card.dataset.id, name: card.dataset.name, price: parseInt(card.dataset.price), img: card.dataset.img, qty: 1 };
+            const product = { 
+                id: card.dataset.id, 
+                name: card.dataset.name, 
+                price: parseInt(card.dataset.price), 
+                img: card.dataset.img, 
+                quantity: 1 
+            };
             const existing = cart.find(item => item.id === product.id);
-            if (existing) existing.qty++; else cart.push(product);
+            if (existing) {
+                existing.quantity = (existing.quantity || 0) + 1;
+            } else {
+                cart.push(product);
+            }
             updateCartUI();
             const btn = e.target; const originalText = btn.textContent;
             btn.textContent = 'ADDED!'; btn.style.background = 'white'; btn.style.color = 'black';
@@ -615,31 +656,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (adminOrderList) {
-            console.log('[ORDER_RENDER_EXECUTION]', orders.length);
+            console.log('[SYSTEM] RENDERING_ADMIN_ORDERS:', orders.length);
             adminOrderList.innerHTML = [...orders]
-                .sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-                .map(o => `
-                <tr class="reveal active">
-                    <td>#${o.id ? o.id.slice(-4) : '????'}</td>
-                    <td>
-                        <strong>${o.customer?.name || 'UNKNOWN AGENT'}</strong><br>
-                        <small>${o.customer?.email || 'NO EMAIL'}</small><br>
-                        <small>${o.customer?.address || 'NO ADDRESS'}</small>
-                    </td>
-                    <td>${o.items ? o.items.length : 0} PCS</td>
-                    <td>${(o.total || 0).toLocaleString()} DZD</td>
-                    <td>
-                        <select class="admin-select-status" onchange="updateOrderStatus('${o.id}', this.value)">
-                            <option value="PENDING" ${o.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
-                            <option value="PROCESSING" ${o.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-                            <option value="COMPLETED" ${o.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-                            <option value="CANCELLED" ${o.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
-                        </select>
-                    </td>
-                    <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'}</td>
-                </tr>
-            `).join('');
-            console.log('[ORDER_RENDERED]');
+                .map(o => {
+                    const totalItems = (o.items || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
+                    return `
+                    <tr class="reveal active">
+                        <td>#${o.id ? o.id.slice(-4) : '????'}</td>
+                        <td>
+                            <strong>${o.customer?.name || 'UNKNOWN AGENT'}</strong><br>
+                            <small>${o.customer?.email || 'NO EMAIL'}</small><br>
+                            <small>${o.customer?.address || 'NO ADDRESS'}</small>
+                        </td>
+                        <td>${totalItems} PCS</td>
+                        <td>${(o.total || 0).toLocaleString()} DZD</td>
+                        <td>
+                            <select class="admin-select-status" onchange="updateOrderStatus('${o.id}', this.value)">
+                                <option value="PENDING" ${o.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
+                                <option value="PROCESSING" ${o.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+                                <option value="COMPLETED" ${o.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+                                <option value="CANCELLED" ${o.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                            </select>
+                        </td>
+                        <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                `}).join('');
+            console.log('[SYSTEM] ADMIN_ORDERS_RENDER_COMPLETE');
         }
     };
 
@@ -697,31 +739,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let productToDeleteId = null;
     let productToWipeId = null;
     let recoveryBuffer = null;
-
-    const showToast = (msg, actionText, onAction) => {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `
-            <i class="fa-solid fa-bell" style="color: var(--accent);"></i>
-            <span class="toast-msg">${msg}</span>
-            ${actionText ? `<button class="undo-btn">${actionText}</button>` : ''}
-        `;
-        
-        if (onAction) {
-            toast.querySelector('.undo-btn').addEventListener('click', () => {
-                onAction();
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 400);
-            });
-        }
-
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.add('fade-out');
-            setTimeout(() => toast.remove(), 400);
-        }, 6000); // 6s duration
-    };
 
     window.deleteProduct = (id) => { 
         if (!Firewall.isAdmin()) return alert('SECURITY PROTOCOL: UNAUTHORIZED ACCESS BLOCKED.');
@@ -1291,7 +1308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0) + 500;
+            const total = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) + 500;
             
             const newOrder = { 
                 customer: { 
@@ -1374,5 +1391,147 @@ document.addEventListener('DOMContentLoaded', () => {
     // Re-run whenever modals might be re-rendered or content changes if needed
     window.addEventListener('viewChanged', initPasswordToggles);
 
+    // HIDE LOADER - ENSURE SYSTEM ENTRANCE
+    const hideLoader = () => {
+        const loader = document.getElementById('app-loading');
+        if (loader) {
+            console.log('[SYSTEM] CLEARING APP LOADING OVERLAY.');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.visibility = 'hidden';
+                loader.remove();
+                console.log('[SYSTEM] MAINFRAME SYNC COMPLETE.');
+            }, 500);
+        }
+    };
+
+    // Final safety: release loader after 4 seconds regardless
+    setTimeout(hideLoader, 4000);
+
+    // Also release loader once products are fetched or on home view
     showView('home');
+    console.log('[SYSTEM] INITIALIZATION SEQUENCE TERMINATED.');
+    
+    // Slight delay for smooth entrance
+    setTimeout(hideLoader, 1500);
+
+    // REVIEWS SYSTEM
+    const reviewModal = document.getElementById('review-modal');
+    const reviewModalClose = document.getElementById('review-modal-close');
+    const writeReviewBtn = document.getElementById('write-review-btn');
+    const reviewForm = document.getElementById('review-form');
+    const publicReviewsList = document.getElementById('public-reviews-list');
+    const adminReviewList = document.getElementById('admin-review-list');
+
+    writeReviewBtn?.addEventListener('click', () => {
+        reviewModal?.classList.add('active');
+    });
+
+    reviewModalClose?.addEventListener('click', () => {
+        reviewModal?.classList.remove('active');
+    });
+
+    reviewModal?.addEventListener('click', (e) => {
+        if (e.target === reviewModal) {
+            reviewModal.classList.remove('active');
+        }
+    });
+
+    const renderStars = (count) => '★'.repeat(count) + '☆'.repeat(5 - count);
+
+    reviewForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('review-name')?.value.trim();
+        const rating = document.getElementById('review-rating')?.value;
+        const text = document.getElementById('review-message')?.value.trim();
+
+        if (!name || !rating || !text) {
+            showToast('PLEASE COMPLETE ALL REVIEW FIELDS');
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, 'reviews'), {
+                name,
+                rating: Number(rating),
+                text,
+                approved: false,
+                createdAt: serverTimestamp()
+            });
+
+            showToast('REVIEW SUBMITTED FOR APPROVAL');
+            reviewForm.reset();
+            reviewModal.classList.remove('active');
+        } catch (error) {
+            handleFirestoreError(error, OperationType.CREATE, 'reviews');
+        }
+    });
+
+    const reviewsQuery = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
+
+    onSnapshot(reviewsQuery, (snapshot) => {
+        if (publicReviewsList) publicReviewsList.innerHTML = '';
+        if (adminReviewList) adminReviewList.innerHTML = '';
+
+        snapshot.forEach((reviewDoc) => {
+            const review = reviewDoc.data();
+            const id = reviewDoc.id;
+
+            if (review.approved && publicReviewsList) {
+                const card = document.createElement('div');
+                card.className = 'review-card';
+                card.innerHTML = `
+                    <div class="review-header">
+                        <h3>${review.name}</h3>
+                        <div class="review-stars">${renderStars(review.rating)}</div>
+                    </div>
+                    <p class="review-text">${review.text}</p>
+                `;
+                publicReviewsList.appendChild(card);
+            }
+
+            if (adminReviewList) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${review.name}</td>
+                    <td>${review.rating}/5</td>
+                    <td>${review.text}</td>
+                    <td>${review.approved ? 'Approved' : 'Pending'}</td>
+                    <td>
+                        <button class="btn btn-mini approve-review-btn" data-id="${id}" data-approved="${review.approved}">${review.approved ? 'UNAPPROVE' : 'APPROVE'}</button>
+                        <button class="btn btn-mini delete-review-btn" data-id="${id}">DELETE</button>
+                    </td>
+                `;
+                adminReviewList.appendChild(row);
+            }
+        });
+
+        document.querySelectorAll('.approve-review-btn').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                try {
+                    await updateDoc(doc(db, 'reviews', btn.dataset.id), {
+                        approved: btn.dataset.approved !== 'true'
+                    });
+                    showToast('REVIEW STATUS UPDATED');
+                } catch (error) {
+                    handleFirestoreError(error, OperationType.UPDATE, 'reviews');
+                }
+            });
+        });
+
+        document.querySelectorAll('.delete-review-btn').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('DELETE THIS REVIEW?')) return;
+
+                try {
+                    await deleteDoc(doc(db, 'reviews', btn.dataset.id));
+                    showToast('REVIEW DELETED');
+                } catch (error) {
+                    handleFirestoreError(error, OperationType.DELETE, 'reviews');
+                }
+            });
+        });
+    });
+
 });

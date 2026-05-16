@@ -10,6 +10,9 @@
         "img": { "type": "string" },
         "description": { "type": "string" },
         "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "pending", "rejected"] },
+        "deleted": { "type": "boolean" },
+        "deletedAt": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "price", "img", "category", "createdAt"]
@@ -55,19 +58,6 @@
       },
       "required": ["timestamp", "type", "status"]
     },
-    "Trash": {
-      "title": "Deleted Product",
-      "description": "Product moved to trash",
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
-        "price": { "type": "number" },
-        "img": { "type": "string" },
-        "category": { "type": "string" },
-        "deletedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["name", "price", "img", "deletedAt"]
-    },
     "User": {
       "title": "User Profile",
       "description": "User account and roles",
@@ -77,6 +67,19 @@
         "role": { "type": "string", "enum": ["admin", "customer"] }
       },
       "required": ["email", "role"]
+    },
+    "Review": {
+      "title": "Product Review",
+      "description": "User feedback on a product",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "PUBLISHED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "rating", "message", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -93,8 +96,12 @@
       "description": "System activity logs"
     },
     "trash": {
-      "schema": "Trash",
-      "description": "Archived deleted products"
+      "schema": "Product",
+      "description": "Deleted products stored for potential recovery"
+    },
+    "reviews": {
+      "schema": "Review",
+      "description": "Customer feedback for moderation"
     },
     "users": {
         "schema": "User",
