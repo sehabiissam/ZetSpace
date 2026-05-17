@@ -76,10 +76,12 @@
         "name": { "type": "string" },
         "rating": { "type": "number", "minimum": 1, "maximum": 5 },
         "message": { "type": "string" },
-        "status": { "type": "string", "enum": ["PENDING", "PUBLISHED"] },
+        "avatar": { "type": ["string", "null"] },
+        "isBest": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["PENDING", "PUBLISHED", "REJECTED"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "rating", "message", "status", "createdAt"]
+      "required": ["name", "rating", "message", "status", "isBest", "createdAt"]
     }
   },
   "firestore": {

@@ -77,11 +77,21 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Reviews (preserve if they existed, though script.js doesn't seem to use them)
+    // Reviews
     match /reviews/{reviewId} {
       allow read: if (resource.data.status == 'PUBLISHED') || isAdmin();
-      allow create: if true; // Public can leave reviews
+      allow create: if isValidReview(incoming());
       allow update, delete: if isAdmin();
+
+      function isValidReview(data) {
+        return data.keys().hasAll(['name', 'rating', 'message', 'status', 'createdAt', 'isBest']) &&
+               data.status == 'PENDING' &&
+               data.rating >= 1 && data.rating <= 5 &&
+               data.isBest == false &&
+               data.name is string && data.name.size() > 0 &&
+               data.message is string && data.message.size() > 0 &&
+               (!data.keys().contains('avatar') || (data.avatar == null || data.avatar is string));
+      }
     }
 
     // Users

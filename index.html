@@ -384,6 +384,16 @@
                     <input type="text" id="rev-name" placeholder="YOUR NAME" required>
                 </div>
                 <div class="form-group">
+                    <label>AVATAR (OPTIONAL)</label>
+                    <div class="image-toggle-container" style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="button" class="btn btn-mini rev-img-mode active" data-mode="none" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">NONE</button>
+                        <button type="button" class="btn btn-mini rev-img-mode" data-mode="upload" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">UPLOAD</button>
+                    </div>
+                    <div id="rev-img-upload-wrapper" style="display: none;">
+                        <input type="file" id="rev-avatar-file" accept="image/*" style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>RATING</label>
                     <div class="star-rating" id="star-input">
                         <i class="fa-solid fa-star" data-rating="1"></i>
@@ -509,6 +519,7 @@
                                     <th>USER</th>
                                     <th>RATING</th>
                                     <th>MESSAGE</th>
+                                    <th>BEST</th>
                                     <th>STATUS</th>
                                     <th>ACTIONS</th>
                                 </tr>
@@ -720,11 +731,12 @@
     <section id="testimonials" class="testimonials section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">CLIENT <span class="accent">COMMANDS</span></h2>
+                <h2 class="section-title">BEST <span class="accent">REVIEWS</span></h2>
                 <p class="section-desc">LOGGED FEEDBACK FROM THE GRID'S TOP RECOGNIZED AGENTS.</p>
             </div>
             <div class="testimonial-slider">
                 <div class="testimonial-track">
+                    <!-- Dynamic clusters will be injected here -->
                     <div class="testimonial-group">
                         <p style="padding: 2rem; opacity: 0.5;">INITIALIZING TESTIMONIAL FEED...</p>
                     </div>

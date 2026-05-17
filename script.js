@@ -84,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
         products: [],
         orders: [],
         logs: [],
-        trash: []
+        trash: [],
+        reviews: []
     };
 
     // Replace DB helper with Firestore logic
@@ -188,6 +189,37 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
             }
+        },
+        saveReview: async (reviewData) => {
+            try {
+                await addDoc(collection(db, 'reviews'), {
+                    ...reviewData,
+                    createdAt: new Date().toISOString()
+                });
+            } catch (error) {
+                handleFirestoreError(error, OperationType.CREATE, 'reviews');
+            }
+        },
+        updateReviewStatus: async (reviewId, newStatus) => {
+            try {
+                await updateDoc(doc(db, 'reviews', reviewId), { status: newStatus });
+            } catch (error) {
+                handleFirestoreError(error, OperationType.UPDATE, `reviews/${reviewId}`);
+            }
+        },
+        toggleBestReview: async (reviewId, currentState) => {
+            try {
+                await updateDoc(doc(db, 'reviews', reviewId), { isBest: !currentState });
+            } catch (error) {
+                handleFirestoreError(error, OperationType.UPDATE, `reviews/${reviewId}/best`);
+            }
+        },
+        deleteReview: async (reviewId) => {
+            try {
+                await deleteDoc(doc(db, 'reviews', reviewId));
+            } catch (error) {
+                handleFirestoreError(error, OperationType.DELETE, `reviews/${reviewId}`);
+            }
         }
     };
 
@@ -277,7 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
         home: ['home', 'features', 'featured', 'about', 'testimonials', 'newsletter'],
         shop: ['shop'],
         cart: ['cart'],
-        admin: ['admin']
+        admin: ['admin'],
+        reviews: ['reviews']
     };
 
     // 2.1 SECURITY LAYER / FIREWALL
@@ -415,6 +448,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }, (err) => {
             if (Firewall.isAdmin()) handleFirestoreError(err, OperationType.LIST, 'trash');
         });
+
+        // Reviews Listener
+        onSnapshot(collection(db, 'reviews'), (snapshot) => {
+            state.reviews = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+            renderPublicReviews();
+            if (Firewall.isAdmin()) renderAdminReviews();
+        }, (err) => handleFirestoreError(err, OperationType.LIST, 'reviews'));
     };
     startListeners();
 
@@ -467,10 +507,12 @@ document.addEventListener('DOMContentLoaded', () => {
         window.dispatchEvent(new Event('viewChanged'));
 
         if (viewKey === 'shop' || viewKey === 'home') renderStore();
+        if (viewKey === 'home' || viewKey === 'reviews') renderPublicReviews();
         if (viewKey === 'admin') {
             renderAdmin();
             renderLogs();
             renderTrash();
+            renderAdminReviews();
         }
     };
 
@@ -682,6 +724,120 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>
                 `}).join('');
             console.log('[SYSTEM] ADMIN_ORDERS_RENDER_COMPLETE');
+        }
+    };
+
+    const renderAdminReviews = () => {
+        if (!Firewall.isAdmin()) return;
+        const reviews = state.reviews;
+        const adminReviewList = document.getElementById('admin-review-list');
+        if (adminReviewList) {
+            if (reviews.length === 0) {
+                adminReviewList.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">NO REVIEWS LOGGED.</td></tr>';
+            } else {
+                adminReviewList.innerHTML = [...reviews].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(r => `
+                    <tr>
+                        <td>
+                            <strong>${r.name}</strong><br>
+                            <small>${new Date(r.createdAt || 0).toLocaleDateString()}</small>
+                        </td>
+                        <td>
+                            <div class="stars">
+                                ${Array(5).fill(0).map((_, i) => `<i class="fa-solid fa-star" style="color: ${i < (r.rating || 0) ? '#ffcc00' : 'rgba(255,255,255,0.1)'};"></i>`).join('')}
+                            </div>
+                        </td>
+                        <td><p style="font-size: 0.75rem; max-width: 300px; white-space: normal;">${r.message}</p></td>
+                        <td>
+                            <select class="admin-select-status" onchange="updateReviewStatus('${r.id}', this.value)">
+                                <option value="PENDING" ${r.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
+                                <option value="PUBLISHED" ${r.status === 'PUBLISHED' ? 'selected' : ''}>PUBLISHED</option>
+                                <option value="REJECTED" ${r.status === 'REJECTED' ? 'selected' : ''}>REJECTED</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="action-btn" onclick="toggleBestReview('${r.id}', ${!!r.isBest})" style="color: ${r.isBest ? '#ffcc00' : 'rgba(255,255,255,0.2)'};">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="deleteReview('${r.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+    };
+
+    window.toggleBestReview = async (id, current) => {
+        if (!Firewall.isAdmin()) return;
+        await DB.toggleBestReview(id, current);
+        showToast(current ? 'REMOVED FROM BEST REVIEWS.' : 'PROMOTED TO BEST REVIEWS.');
+    };
+
+    window.updateReviewStatus = async (id, status) => {
+        if (!Firewall.isAdmin()) return;
+        await DB.updateReviewStatus(id, status);
+        showToast(`REVIEW STATUS UPDATED: ${status}`);
+    };
+
+    window.deleteReview = async (id) => {
+        if (!Firewall.isAdmin()) return;
+        if (confirm('PERMANENTLY ERASE THIS TRANSMISSION FROM THE ARCHIVE?')) {
+            await DB.deleteReview(id);
+            showToast('REVIEW PURGED.');
+        }
+    };
+
+    const renderPublicReviews = () => {
+        const reviews = state.reviews.filter(r => r.status === 'PUBLISHED');
+        const bestReviews = reviews.filter(r => r.isBest === true);
+        const publicList = document.getElementById('public-reviews-list');
+        const testimonialTrack = document.querySelector('.testimonial-track');
+
+        const reviewToHTML = (r) => `
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    ${r.avatar ? 
+                        `<img src="${r.avatar}" alt="${r.name}" class="testimonial-avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent);">` : 
+                        `<div class="testimonial-avatar" style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.2rem; color: #000;">
+                            ${r.name ? r.name.charAt(0).toUpperCase() : '?'}
+                        </div>`
+                    }
+                    <div class="testimonial-meta">
+                        <h4>${r.name || 'ANONYMOUS'}</h4>
+                        <div class="stars">
+                            ${Array(5).fill(0).map((_, i) => `<i class="fa-solid fa-star" style="color: ${i < (r.rating || 0) ? '#ffcc00' : 'rgba(255,255,255,0.1)'};"></i>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">${r.message || ''}</p>
+                <div class="testimonial-id">AGENT_LOG // ${r.id ? r.id.slice(-6).toUpperCase() : 'UNKNOWN'}</div>
+            </div>
+        `;
+
+        if (publicList) {
+            if (reviews.length === 0) {
+                publicList.innerHTML = '<p class="empty-msg">THE ARCHIVE IS CURRENTLY EMPTY. BE THE FIRST TO LOG YOUR FEEDBACK.</p>';
+            } else {
+                publicList.innerHTML = reviews.map(reviewToHTML).join('');
+            }
+        }
+
+        if (testimonialTrack) {
+            // Testimonial slider uses "Best Reviews" if any exist, otherwise fallback to all published
+            const displayReviews = bestReviews.length > 0 ? bestReviews : reviews;
+            
+            if (displayReviews.length === 0) {
+                testimonialTrack.innerHTML = '<div class="testimonial-group"><p style="padding: 2rem; opacity: 0.5;">INITIALIZING TESTIMONIAL FEED...</p></div>';
+            } else {
+                const reviewsHTML = displayReviews.map(reviewToHTML).join('');
+                let repeatedReviewsHTML = reviewsHTML;
+                // Double/Triple for smooth infinite loop
+                if (displayReviews.length < 5) repeatedReviewsHTML = reviewsHTML + reviewsHTML + reviewsHTML;
+                
+                const groupHTML = `<div class="testimonial-group">${repeatedReviewsHTML}</div>`;
+                testimonialTrack.innerHTML = groupHTML + groupHTML;
+            }
         }
     };
 
@@ -1250,6 +1406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const homeSections = ['home', 'features', 'featured', 'about', 'testimonials', 'newsletter'];
             if (homeSections.includes(view)) { showView('home'); const el = document.getElementById(view); if (el) window.scrollTo({ top: el.offsetTop - 70, behavior: 'smooth' }); }
             else if (view === 'shop') showView('shop');
+            else if (view === 'reviews') showView('reviews');
             else if (view === 'cart') { showView('cart'); renderCart(); }
         });
     });
@@ -1285,6 +1442,101 @@ document.addEventListener('DOMContentLoaded', () => {
     // 7. CHECKOUT LOGIC
     const orderForm = document.getElementById('order-form');
     const checkoutTrigger = document.querySelector('.checkout-trigger');
+
+    // 7.1 REVIEW SUBMISSION LOGIC
+    const reviewForm = document.getElementById('review-form');
+    const writeReviewBtn = document.getElementById('write-review-btn');
+    const reviewModal = document.getElementById('review-modal');
+    const starInput = document.getElementById('star-input');
+    const revRating = document.getElementById('rev-rating');
+    const revAvatarFile = document.getElementById('rev-avatar-file');
+    const revImgModes = document.querySelectorAll('.rev-img-mode');
+    const revImgUploadWrapper = document.getElementById('rev-img-upload-wrapper');
+
+    let currentRevImgMode = 'none';
+
+    if (revImgModes.length > 0) {
+        revImgModes.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentRevImgMode = btn.dataset.mode;
+                revImgModes.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                revImgUploadWrapper.style.display = currentRevImgMode === 'upload' ? 'block' : 'none';
+            });
+        });
+    }
+
+    if (writeReviewBtn) {
+        writeReviewBtn.addEventListener('click', () => {
+            reviewModal.classList.add('active');
+        });
+    }
+
+    if (starInput) {
+        starInput.addEventListener('click', (e) => {
+            if (e.target.dataset.rating) {
+                const rating = parseInt(e.target.dataset.rating);
+                revRating.value = rating;
+                const stars = starInput.querySelectorAll('i');
+                stars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.style.color = '#ffcc00';
+                        s.style.opacity = '1';
+                    } else {
+                        s.style.color = 'white';
+                        s.style.opacity = '0.2';
+                    }
+                });
+            }
+        });
+    }
+
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-review-btn');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> TRANSMITTING...';
+
+            let avatarUrl = null;
+            if (currentRevImgMode === 'upload' && revAvatarFile.files[0]) {
+                try {
+                    avatarUrl = await uploadImage(revAvatarFile.files[0]);
+                } catch (err) {
+                    console.error('AVATAR UPLOAD ERROR:', err);
+                }
+            }
+
+            const reviewData = {
+                name: document.getElementById('rev-name').value,
+                rating: parseInt(revRating.value),
+                message: document.getElementById('rev-message').value,
+                status: 'PENDING',
+                avatar: avatarUrl,
+                isBest: false,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await DB.saveReview(reviewData);
+                showToast('TRANSMISSION SUCCESSFUL. PENDING MODERATION.');
+                reviewModal.classList.remove('active');
+                reviewForm.reset();
+                // Reset stars
+                const stars = starInput.querySelectorAll('i');
+                stars.forEach(s => { s.style.color = '#ffcc00'; s.style.opacity = '1'; });
+                revRating.value = '5';
+            } catch (error) {
+                showToast('TRANSMISSION FAILED: INTERFERENCE DETECTED.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+
     if (checkoutTrigger) { checkoutTrigger.addEventListener('click', () => { if (cart.length === 0) { alert('YOUR BAG IS EMPTY.'); return; } document.getElementById('checkout-modal').classList.add('active'); document.getElementById('order-form').style.display = 'block'; document.getElementById('order-success').classList.remove('active'); }); }
     if (orderForm) {
         orderForm.addEventListener('submit', async (e) => {
@@ -1414,124 +1666,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Slight delay for smooth entrance
     setTimeout(hideLoader, 1500);
-
-    // REVIEWS SYSTEM
-    const reviewModal = document.getElementById('review-modal');
-    const reviewModalClose = document.getElementById('review-modal-close');
-    const writeReviewBtn = document.getElementById('write-review-btn');
-    const reviewForm = document.getElementById('review-form');
-    const publicReviewsList = document.getElementById('public-reviews-list');
-    const adminReviewList = document.getElementById('admin-review-list');
-
-    writeReviewBtn?.addEventListener('click', () => {
-        reviewModal?.classList.add('active');
-    });
-
-    reviewModalClose?.addEventListener('click', () => {
-        reviewModal?.classList.remove('active');
-    });
-
-    reviewModal?.addEventListener('click', (e) => {
-        if (e.target === reviewModal) {
-            reviewModal.classList.remove('active');
-        }
-    });
-
-    const renderStars = (count) => '★'.repeat(count) + '☆'.repeat(5 - count);
-
-    reviewForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const name = document.getElementById('review-name')?.value.trim();
-        const rating = document.getElementById('review-rating')?.value;
-        const text = document.getElementById('review-message')?.value.trim();
-
-        if (!name || !rating || !text) {
-            showToast('PLEASE COMPLETE ALL REVIEW FIELDS');
-            return;
-        }
-
-        try {
-            await addDoc(collection(db, 'reviews'), {
-                name,
-                rating: Number(rating),
-                text,
-                approved: false,
-                createdAt: serverTimestamp()
-            });
-
-            showToast('REVIEW SUBMITTED FOR APPROVAL');
-            reviewForm.reset();
-            reviewModal.classList.remove('active');
-        } catch (error) {
-            handleFirestoreError(error, OperationType.CREATE, 'reviews');
-        }
-    });
-
-    const reviewsQuery = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
-
-    onSnapshot(reviewsQuery, (snapshot) => {
-        if (publicReviewsList) publicReviewsList.innerHTML = '';
-        if (adminReviewList) adminReviewList.innerHTML = '';
-
-        snapshot.forEach((reviewDoc) => {
-            const review = reviewDoc.data();
-            const id = reviewDoc.id;
-
-            if (review.approved && publicReviewsList) {
-                const card = document.createElement('div');
-                card.className = 'review-card';
-                card.innerHTML = `
-                    <div class="review-header">
-                        <h3>${review.name}</h3>
-                        <div class="review-stars">${renderStars(review.rating)}</div>
-                    </div>
-                    <p class="review-text">${review.text}</p>
-                `;
-                publicReviewsList.appendChild(card);
-            }
-
-            if (adminReviewList) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${review.name}</td>
-                    <td>${review.rating}/5</td>
-                    <td>${review.text}</td>
-                    <td>${review.approved ? 'Approved' : 'Pending'}</td>
-                    <td>
-                        <button class="btn btn-mini approve-review-btn" data-id="${id}" data-approved="${review.approved}">${review.approved ? 'UNAPPROVE' : 'APPROVE'}</button>
-                        <button class="btn btn-mini delete-review-btn" data-id="${id}">DELETE</button>
-                    </td>
-                `;
-                adminReviewList.appendChild(row);
-            }
-        });
-
-        document.querySelectorAll('.approve-review-btn').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                try {
-                    await updateDoc(doc(db, 'reviews', btn.dataset.id), {
-                        approved: btn.dataset.approved !== 'true'
-                    });
-                    showToast('REVIEW STATUS UPDATED');
-                } catch (error) {
-                    handleFirestoreError(error, OperationType.UPDATE, 'reviews');
-                }
-            });
-        });
-
-        document.querySelectorAll('.delete-review-btn').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('DELETE THIS REVIEW?')) return;
-
-                try {
-                    await deleteDoc(doc(db, 'reviews', btn.dataset.id));
-                    showToast('REVIEW DELETED');
-                } catch (error) {
-                    handleFirestoreError(error, OperationType.DELETE, 'reviews');
-                }
-            });
-        });
-    });
-
 });
