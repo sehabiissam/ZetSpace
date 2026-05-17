@@ -88,6 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
         reviews: []
     };
 
+    // Tracking active Firestore listeners for clean re-init
+    const activeListeners = {
+        products: null,
+        orders: null,
+        logs: null,
+        trash: null,
+        reviews: null
+    };
+
     // Replace DB helper with Firestore logic
     const DB = {
         // Now mostly reactive listeners, but we keep the structure for compatibility
@@ -219,6 +228,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 await deleteDoc(doc(db, 'reviews', reviewId));
             } catch (error) {
                 handleFirestoreError(error, OperationType.DELETE, `reviews/${reviewId}`);
+            }
+        },
+        deleteAllLogs: async () => {
+            try {
+                const batch = [];
+                state.logs.forEach(log => {
+                    batch.push(deleteDoc(doc(db, 'logs', log.id)));
+                });
+                await Promise.all(batch);
+            } catch (error) {
+                handleFirestoreError(error, OperationType.DELETE, 'logs/all');
             }
         }
     };
@@ -375,6 +395,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Firebase Auth State Listener
     onAuthStateChanged(auth, async (user) => {
         console.log('[AUTH_STATE_CHANGE]', user ? user.email : 'NULL');
+        
+        // RE-INIT LISTENERS ON AUTH CHANGE
+        // This ensures listeners that require permissions (like orders) 
+        // are properly established once the auth token is available.
+        startListeners();
+
         if (user) {
             console.log('[AUTH_STATE]', user);
             if (user.email === ADMIN_EMAIL) {
@@ -403,18 +429,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // STARTING FIREBASE REALTIME LISTENERS
     const startListeners = () => {
-        // Products Listener
-        onSnapshot(collection(db, 'products'), (snapshot) => {
+        console.log('[SYSTEM] SYNCHRONIZING REALTIME STREAMS...');
+
+        // Clear existing listeners to prevent leaks/duplicates
+        if (activeListeners.products) activeListeners.products();
+        if (activeListeners.orders) activeListeners.orders();
+        if (activeListeners.logs) activeListeners.logs();
+        if (activeListeners.trash) activeListeners.trash();
+        if (activeListeners.reviews) activeListeners.reviews();
+
+        // Products Listener (Public)
+        activeListeners.products = onSnapshot(collection(db, 'products'), (snapshot) => {
             state.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
             renderStore();
             if (Firewall.isAdmin()) renderAdmin();
-        }, (err) => handleFirestoreError(err, OperationType.LIST, 'products'));
+        }, (err) => {
+            console.warn('[SYSTEM] PRODUCTS_LISTENER_ERR:', err.message);
+            handleFirestoreError(err, OperationType.LIST, 'products');
+        });
 
-        // Orders Listener
+        // Orders Listener (Admin Only)
+        // If not admin, the listener will naturally fail due to rules, which is handled.
         const ordersRef = collection(db, 'orders');
         const ordersQuery = query(ordersRef, orderBy('createdAt', 'desc'));
         
-        onSnapshot(ordersQuery, (snapshot) => {
+        activeListeners.orders = onSnapshot(ordersQuery, (snapshot) => {
             console.log('[SYSTEM] ORDERS_SYNC_RECEIVED:', snapshot.docs.length);
 
             state.orders = snapshot.docs.map(doc => ({
@@ -422,41 +461,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...doc.data()
             }));
 
-            console.log('[SYSTEM] STATE_ORDERS_UPDATED:', state.orders);
+            console.log('[SYSTEM] STATE_ORDERS_UPDATED:', state.orders.length);
 
-            if (Firewall.isAdmin()) {
-                console.log('[SYSTEM] ADMIN_DETECTED -> EXECUTING_ORDER_RENDER');
-                renderAdmin();
-            }
+            // Always try to render orders if the common parent exists
+            renderAdminOrders();
         }, (err) => {
-            console.error('[SYSTEM] ORDERS_LISTENER_CRITICAL_ERROR:', err);
+            console.error('[SYSTEM] ORDERS_LISTENER_CRITICAL_ERROR:', err.message);
+            // Only report to UI if they are supposed to be admin but permission failed
             if (Firewall.isAdmin()) handleFirestoreError(err, OperationType.LIST, 'orders');
         });
 
-        // Logs Listener
-        onSnapshot(collection(db, 'logs'), (snapshot) => {
+        // Logs Listener (Admin Only)
+        activeListeners.logs = onSnapshot(collection(db, 'logs'), (snapshot) => {
             state.logs = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
             if (Firewall.isAdmin()) renderLogs();
         }, (err) => {
             if (Firewall.isAdmin()) handleFirestoreError(err, OperationType.LIST, 'logs');
         });
 
-        // Trash Listener
-        onSnapshot(collection(db, 'trash'), (snapshot) => {
+        // Trash Listener (Admin Only)
+        activeListeners.trash = onSnapshot(collection(db, 'trash'), (snapshot) => {
             state.trash = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
             if (Firewall.isAdmin()) renderTrash();
         }, (err) => {
             if (Firewall.isAdmin()) handleFirestoreError(err, OperationType.LIST, 'trash');
         });
 
-        // Reviews Listener
-        onSnapshot(collection(db, 'reviews'), (snapshot) => {
+        // Reviews Listener (Mixed - Admin can see all, Public see published)
+        activeListeners.reviews = onSnapshot(collection(db, 'reviews'), (snapshot) => {
             state.reviews = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
             renderPublicReviews();
             if (Firewall.isAdmin()) renderAdminReviews();
-        }, (err) => handleFirestoreError(err, OperationType.LIST, 'reviews'));
+        }, (err) => {
+            console.warn('[SYSTEM] REVIEWS_LISTENER_ERR:', err.message);
+            handleFirestoreError(err, OperationType.LIST, 'reviews');
+        });
     };
-    startListeners();
 
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileToggle = document.getElementById('mobile-toggle');
@@ -470,6 +510,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (mobileToggle) mobileToggle.addEventListener('click', toggleMobileMenu);
     if (menuClose) menuClose.addEventListener('click', toggleMobileMenu);
+
+    // Admin Sidebar Toggle Logic
+    const adminSidebar = document.getElementById('admin-sidebar');
+    const adminSidebarToggle = document.getElementById('admin-sidebar-toggle');
+    const adminSidebarClose = document.getElementById('admin-sidebar-close');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    const toggleAdminSidebar = () => {
+        if (!adminSidebar) return;
+        adminSidebar.classList.toggle('active');
+        if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
+        document.body.style.overflow = adminSidebar.classList.contains('active') ? 'hidden' : 'auto';
+    };
+
+    if (adminSidebarToggle) adminSidebarToggle.addEventListener('click', toggleAdminSidebar);
+    if (adminSidebarClose) adminSidebarClose.addEventListener('click', toggleAdminSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleAdminSidebar);
 
     const showView = (viewKey) => {
         // Firewall Check: Redirect if unauthorized
@@ -673,58 +730,159 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. ADMIN PANEL LOGIC
     const renderAdmin = () => {
         if (!Firewall.isAdmin()) return; 
+        renderAdminProducts();
+        renderAdminOrders();
+    };
 
+    const renderAdminProducts = () => {
+        if (!Firewall.isAdmin()) return;
         const products = state.products;
-        const orders = state.orders;
         const adminProductList = document.getElementById('admin-product-list');
+        if (!adminProductList) return;
+
+        if (products.length === 0) {
+            adminProductList.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">NO PRODUCTS IN DATABASE</td></tr>';
+        } else {
+            adminProductList.innerHTML = products.map(p => `
+                <tr id="admin-row-${p.id}" class="admin-row-trigger" data-id="${p.id}" data-name="${p.name}">
+                    <td><img src="${p.img}" class="admin-img-thumb" alt=""></td>
+                    <td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>${p.price.toLocaleString()} DZD</td>
+                    <td>
+                        <div class="desktop-actions">
+                            <button class="action-btn edit-btn" onclick="event.stopPropagation(); openEditProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteProduct('${p.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    };
+
+    const renderAdminOrders = () => {
+        if (!Firewall.isAdmin()) return;
+        const orders = state.orders;
         const adminOrderList = document.getElementById('admin-order-list');
+        if (!adminOrderList) return;
+
+        console.log('[SYSTEM] RENDERING_ADMIN_ORDERS:', orders.length);
+        adminOrderList.innerHTML = [...orders]
+            .map(o => {
+                const totalItems = (o.items || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
+                const formattedDate = o.createdAt ? new Date(o.createdAt).toLocaleString() : 'N/A';
+                const gearSummary = (o.items || []).map(item => `${item.name} (${item.quantity || 1})`).join(', ');
+
+                return `
+                <tr class="reveal active admin-row-trigger" onclick="openOrderDetail('${o.id}')">
+                    <td>
+                        <strong style="color: #fff;">${o.customer?.name || 'UNKNOWN'}</strong>
+                        <div class="desktop-only"><small style="opacity: 0.5;">${o.customer?.email || ''}</small></div>
+                    </td>
+                    <td style="font-size: 0.75rem; opacity: 0.7;">
+                        ${o.customer?.address || 'N/A'}
+                    </td>
+                    <td class="desktop-only" style="font-size: 0.7rem; max-width: 250px;">
+                        <span style="opacity: 0.8;">${gearSummary}</span><br>
+                        <strong style="color: var(--accent);">${totalItems} ITEMS</strong>
+                    </td>
+                    <td class="desktop-only">
+                        <strong>${(o.total || 0).toLocaleString()}</strong><br>
+                        <small>DZD</small>
+                    </td>
+                    <td class="desktop-only">
+                        <select class="admin-select-status" onchange="updateOrderStatus('${o.id}', this.value)">
+                            <option value="PENDING" ${o.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
+                            <option value="PROCESSING" ${o.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+                            <option value="COMPLETED" ${o.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+                            <option value="CANCELLED" ${o.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                        </select>
+                    </td>
+                    <td class="desktop-only" style="font-size: 0.7rem; opacity: 0.5;">
+                        ${formattedDate}
+                    </td>
+                </tr>
+            `}).join('');
+        console.log('[SYSTEM] ADMIN_ORDERS_RENDER_COMPLETE');
+    };
+
+    window.openOrderDetail = (id) => {
+        if (!Firewall.isAdmin()) return;
         
-        if (adminProductList) {
-            if (products.length === 0) {
-                adminProductList.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">NO PRODUCTS IN DATABASE</td></tr>';
-            } else {
-                adminProductList.innerHTML = products.map(p => `
-                    <tr id="admin-row-${p.id}">
-                        <td><img src="${p.img}" class="admin-img-thumb" alt=""></td>
-                        <td>${p.name}</td>
-                        <td>${p.category}</td>
-                        <td>${p.price.toLocaleString()} DZD</td>
-                        <td>
-                            <button class="action-btn edit-btn" title="EDIT" onclick="openEditProduct('${p.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="action-btn delete-btn" title="DELETE" onclick="deleteProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
+        // ONLY OPEN MODAL ON MOBILE (<= 900px)
+        // Desktop shows full info in row, so modal is redundant
+        if (window.innerWidth > 900) return;
+
+        const order = state.orders.find(o => o.id === id);
+        if (!order) return;
+
+        const modal = document.getElementById('order-detail-modal');
+        if (!modal) return;
+
+        // Fill data
+        document.getElementById('dt-order-id').textContent = `TRANS_ID: ${order.id}`;
+        document.getElementById('dt-customer-name').textContent = order.customer?.name || 'N/A';
+        document.getElementById('dt-customer-email').textContent = order.customer?.email || 'N/A';
+        document.getElementById('dt-customer-address').textContent = order.customer?.address || 'N/A';
+        document.getElementById('dt-order-date').textContent = order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A';
+        document.getElementById('dt-total-price').textContent = `${(order.total || 0).toLocaleString()} DZD`;
+
+        const statusEl = document.getElementById('dt-order-status');
+        statusEl.textContent = order.status || 'PENDING';
+        statusEl.className = `status-badge status-${(order.status || 'PENDING').toLowerCase()}`;
+
+        // Fill items
+        const itemsList = document.getElementById('dt-items-list');
+        itemsList.innerHTML = (order.items || []).map(item => `
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="${item.img}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div>
+                        <p style="font-size: 0.75rem; font-weight: 700;">${item.name}</p>
+                        <p style="font-size: 0.6rem; opacity: 0.5;">${item.price.toLocaleString()} DZD</p>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <p style="font-size: 0.8rem; font-weight: 700;">x${item.quantity || 1}</p>
+                </div>
+            </div>
+        `).join('');
+
+        // Adaptive UI Logic
+        const statusControls = document.getElementById('order-status-controls');
+        const mobileActions = document.getElementById('dt-mobile-actions');
+        const footer = document.getElementById('dt-footer');
+        const isMobile = window.innerWidth <= 900;
+
+        if (isMobile) {
+            if (statusControls) statusControls.style.display = 'none';
+            if (mobileActions) {
+                mobileActions.style.display = 'flex';
+                // Reset state for mobile buttons
+                document.querySelectorAll('.m-dt-btn').forEach(btn => {
+                    btn.onclick = () => {
+                        const newStatus = btn.dataset.status;
+                        window.updateOrderStatus(order.id, newStatus);
+                        // Update UI locally
+                        statusEl.textContent = newStatus;
+                        statusEl.className = `status-badge status-${newStatus.toLowerCase()}`;
+                    };
+                });
             }
+        } else {
+            if (statusControls) {
+                statusControls.style.display = 'flex';
+                const statuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED'];
+                statusControls.innerHTML = `
+                    <select class="admin-select" style="margin: 0;" onchange="updateOrderStatus('${order.id}', this.value); document.getElementById('dt-order-status').textContent = this.value; document.getElementById('dt-order-status').className = 'status-badge status-' + this.value.toLowerCase();">
+                        ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                    </select>
+                `;
+            }
+            if (mobileActions) mobileActions.style.display = 'none';
         }
-        if (adminOrderList) {
-            console.log('[SYSTEM] RENDERING_ADMIN_ORDERS:', orders.length);
-            adminOrderList.innerHTML = [...orders]
-                .map(o => {
-                    const totalItems = (o.items || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
-                    return `
-                    <tr class="reveal active">
-                        <td>#${o.id ? o.id.slice(-4) : '????'}</td>
-                        <td>
-                            <strong>${o.customer?.name || 'UNKNOWN AGENT'}</strong><br>
-                            <small>${o.customer?.email || 'NO EMAIL'}</small><br>
-                            <small>${o.customer?.address || 'NO ADDRESS'}</small>
-                        </td>
-                        <td>${totalItems} PCS</td>
-                        <td>${(o.total || 0).toLocaleString()} DZD</td>
-                        <td>
-                            <select class="admin-select-status" onchange="updateOrderStatus('${o.id}', this.value)">
-                                <option value="PENDING" ${o.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
-                                <option value="PROCESSING" ${o.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-                                <option value="COMPLETED" ${o.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-                                <option value="CANCELLED" ${o.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
-                            </select>
-                        </td>
-                        <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'}</td>
-                    </tr>
-                `}).join('');
-            console.log('[SYSTEM] ADMIN_ORDERS_RENDER_COMPLETE');
-        }
+
+        modal.classList.add('active');
     };
 
     const renderAdminReviews = () => {
@@ -736,7 +894,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminReviewList.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">NO REVIEWS LOGGED.</td></tr>';
             } else {
                 adminReviewList.innerHTML = [...reviews].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(r => `
-                    <tr>
+                    <tr class="review-row-trigger" 
+                        data-id="${r.id}" 
+                        data-name="${r.name}" 
+                        data-rating="${r.rating || 0}" 
+                        data-message="${r.message.replace(/"/g, '&quot;')}" 
+                        data-best="${!!r.isBest}">
                         <td>
                             <strong>${r.name}</strong><br>
                             <small>${new Date(r.createdAt || 0).toLocaleDateString()}</small>
@@ -755,12 +918,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </select>
                         </td>
                         <td>
-                            <button class="action-btn" onclick="toggleBestReview('${r.id}', ${!!r.isBest})" style="color: ${r.isBest ? '#ffcc00' : 'rgba(255,255,255,0.2)'};">
+                            <button class="action-btn" onclick="event.stopPropagation(); toggleBestReview('${r.id}', ${!!r.isBest})" style="color: ${r.isBest ? '#ffcc00' : 'rgba(255,255,255,0.2)'};">
                                 <i class="fa-solid fa-star"></i>
                             </button>
                         </td>
                         <td>
-                            <button class="action-btn delete-btn" onclick="deleteReview('${r.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                            <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteReview('${r.id}')"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
                     </tr>
                 `).join('');
@@ -855,18 +1018,49 @@ document.addEventListener('DOMContentLoaded', () => {
             if (logs.length === 0) {
                 logsList.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">NO SYSTEM ACTIVITY LOGGED.</td></tr>';
             } else {
-                logsList.innerHTML = [...logs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).map(log => `
-                    <tr>
-                        <td>${log.productName}</td>
-                        <td>${log.price.toLocaleString()} DZD</td>
-                        <td>${new Date(log.timestamp).toLocaleString()}</td>
-                        <td><span class="status-badge status-${log.status.toLowerCase()}">${log.status}</span></td>
-                        <td>${log.type}</td>
-                    </tr>
-                `).join('');
+                try {
+                    logsList.innerHTML = [...logs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).map(log => `
+                        <tr>
+                            <td>${log.productName || 'SYSTEM'}</td>
+                            <td>${(log.price || 0).toLocaleString()} DZD</td>
+                            <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
+                            <td><span class="status-badge status-${(log.status || 'unknown').toLowerCase()}">${log.status || 'LOG'}</span></td>
+                            <td>${log.type || 'EVENT'}</td>
+                        </tr>
+                    `).join('');
+                } catch (err) {
+                    console.error('[SYSTEM] RENDER_LOGS_ERROR:', err);
+                    logsList.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1rem; color: #ff4d4d;">SYNC ERROR: LOG INTEGRITY COMPROMISED.</td></tr>';
+                }
             }
         }
     };
+
+    window.promptDeleteAllLogs = () => {
+        if (!Firewall.isAdmin()) return;
+        if (state.logs.length === 0) return showToast('NO LOGS TO DELETE.');
+        document.getElementById('delete-all-logs-modal').classList.add('active');
+    };
+
+    const confirmDeleteAllLogsBtn = document.getElementById('confirm-delete-all-logs-btn');
+    if (confirmDeleteAllLogsBtn) {
+        confirmDeleteAllLogsBtn.addEventListener('click', async () => {
+            const originalText = confirmDeleteAllLogsBtn.innerHTML;
+            confirmDeleteAllLogsBtn.disabled = true;
+            confirmDeleteAllLogsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> WIPING LOGS...';
+
+            try {
+                await DB.deleteAllLogs();
+                showToast('SYSTEM ACTIVITY LOGS WIPED.');
+                document.getElementById('delete-all-logs-modal').classList.remove('active');
+            } catch (error) {
+                showToast('SYSTEM ERROR: LOG WIPE FAILED.');
+            } finally {
+                confirmDeleteAllLogsBtn.disabled = false;
+                confirmDeleteAllLogsBtn.innerHTML = originalText;
+            }
+        });
+    }
 
     const renderTrash = () => {
         if (!Firewall.isAdmin()) return;
@@ -877,20 +1071,177 @@ document.addEventListener('DOMContentLoaded', () => {
                 trashList.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">TRASH IS EMPTY. NOTHING TO RECOVER.</td></tr>';
             } else {
                 trashList.innerHTML = [...trash].sort((a,b) => new Date(b.deletedAt) - new Date(a.deletedAt)).map(p => `
-                    <tr id="trash-row-${p.id}">
+                    <tr id="trash-row-${p.id}" class="trash-row-trigger" data-id="${p.id}" data-name="${p.name}">
                         <td><img src="${p.img}" class="admin-img-thumb" alt=""></td>
                         <td>${p.name}</td>
                         <td>${p.price.toLocaleString()} DZD</td>
                         <td>${new Date(p.deletedAt).toLocaleDateString()}</td>
                         <td>
-                            <button class="action-btn edit-btn" title="RESTORE" onclick="restoreProduct('${p.id}')"><i class="fa-solid fa-rotate-left"></i></button>
-                            <button class="action-btn delete-btn" title="WIPE" onclick="permanentDelete('${p.id}')"><i class="fa-solid fa-skull"></i></button>
+                            <div class="desktop-actions">
+                                <button class="action-btn edit-btn" title="RESTORE" onclick="event.stopPropagation(); restoreProduct('${p.id}')"><i class="fa-solid fa-rotate-left"></i></button>
+                                <button class="action-btn delete-btn" title="WIPE" onclick="event.stopPropagation(); permanentDelete('${p.id}')"><i class="fa-solid fa-skull"></i></button>
+                            </div>
                         </td>
                     </tr>
                 `).join('');
             }
         }
     };
+
+    // Mobile Action Card Logic
+    const productActionModal = document.getElementById('product-action-modal');
+    const mProductName = document.getElementById('m-product-name');
+    const mobileEditBtn = document.getElementById('mobile-edit-btn');
+    const mobileDeleteBtn = document.getElementById('mobile-delete-btn');
+    const productActionClose = document.getElementById('product-action-close');
+    let currentMobileProductId = null;
+
+    const adminProductList = document.getElementById('admin-product-list');
+    if (adminProductList) {
+        adminProductList.addEventListener('click', (e) => {
+            if (window.innerWidth > 768) return;
+            const row = e.target.closest('.admin-row-trigger');
+            if (row) {
+                currentMobileProductId = row.dataset.id;
+                if (mProductName) mProductName.textContent = row.dataset.name;
+                if (productActionModal) productActionModal.classList.add('active');
+            }
+        });
+    }
+
+    if (productActionClose) productActionClose.addEventListener('click', () => productActionModal.classList.remove('active'));
+
+    if (mobileEditBtn) {
+        mobileEditBtn.addEventListener('click', () => {
+            if (currentMobileProductId) {
+                window.openEditProduct(currentMobileProductId);
+                productActionModal.classList.remove('active');
+            }
+        });
+    }
+
+    if (mobileDeleteBtn) {
+        mobileDeleteBtn.addEventListener('click', () => {
+            if (currentMobileProductId) {
+                window.deleteProduct(currentMobileProductId);
+                productActionModal.classList.remove('active');
+            }
+        });
+    }
+
+    const trashActionModal = document.getElementById('trash-action-modal');
+    const trashItemTitle = document.getElementById('trash-item-title');
+    const mobileRestoreBtn = document.getElementById('mobile-restore-btn');
+    const mobilePermanentDeleteBtn = document.getElementById('mobile-permanent-delete-btn');
+    const trashActionClose = document.getElementById('trash-action-close');
+    let currentTrashId = null;
+
+    const trashList = document.getElementById('admin-trash-list');
+    if (trashList) {
+        trashList.addEventListener('click', (e) => {
+            if (window.innerWidth > 768) return;
+            const row = e.target.closest('.trash-row-trigger');
+            if (row) {
+                currentTrashId = row.dataset.id;
+                if (trashItemTitle) trashItemTitle.textContent = row.dataset.name;
+                if (trashActionModal) trashActionModal.classList.add('active');
+            }
+        });
+    }
+
+    if (trashActionClose) trashActionClose.addEventListener('click', () => trashActionModal.classList.remove('active'));
+
+    if (mobileRestoreBtn) {
+        mobileRestoreBtn.addEventListener('click', () => {
+            if (currentTrashId) {
+                window.restoreProduct(currentTrashId);
+                trashActionModal.classList.remove('active');
+            }
+        });
+    }
+
+    if (mobilePermanentDeleteBtn) {
+        mobilePermanentDeleteBtn.addEventListener('click', () => {
+            if (currentTrashId) {
+                window.permanentDelete(currentTrashId);
+                trashActionModal.classList.remove('active');
+            }
+        });
+    }
+
+    const reviewActionModal = document.getElementById('review-action-modal');
+    const mobileReviewName = document.getElementById('m-reviewer-name');
+    const mobileReviewStars = document.getElementById('m-review-stars');
+    const mobileReviewMessage = document.getElementById('m-review-message');
+    const mobileBestReviewBtn = document.getElementById('mobile-best-review-btn');
+    const mobileDeleteReviewBtn = document.getElementById('mobile-delete-review-btn');
+    const reviewActionClose = document.getElementById('review-action-close');
+    let currentMobileReviewId = null;
+    let currentMobileReviewBest = false;
+
+    const adminReviewList = document.getElementById('admin-review-list');
+    if (adminReviewList) {
+        adminReviewList.addEventListener('click', (e) => {
+            if (window.innerWidth > 900) return;
+            const row = e.target.closest('.review-row-trigger');
+            if (row) {
+                currentMobileReviewId = row.dataset.id;
+                currentMobileReviewBest = row.dataset.best === 'true';
+                
+                if (mobileReviewName) mobileReviewName.textContent = row.dataset.name;
+                if (mobileReviewMessage) mobileReviewMessage.innerHTML = row.dataset.message;
+                
+                if (mobileReviewStars) {
+                    const rating = parseInt(row.dataset.rating);
+                    mobileReviewStars.innerHTML = Array(5).fill(0).map((_, i) => 
+                        `<i class="fa-solid fa-star" style="color: ${i < rating ? '#ffcc00' : 'rgba(255,255,255,0.1)'};"></i>`
+                    ).join('');
+                }
+
+                if (mobileBestReviewBtn) {
+                    mobileBestReviewBtn.style.background = currentMobileReviewBest ? 'rgba(255, 204, 0, 0.1)' : '';
+                    mobileBestReviewBtn.style.color = currentMobileReviewBest ? '#ffcc00' : '';
+                    mobileBestReviewBtn.style.borderColor = currentMobileReviewBest ? '#ffcc00' : '';
+                    mobileBestReviewBtn.innerHTML = currentMobileReviewBest ? 
+                        '<i class="fa-solid fa-star"></i> BEST: ACTIVE' : 
+                        '<i class="fa-solid fa-award"></i> MARK AS BEST';
+                }
+
+                if (reviewActionModal) reviewActionModal.classList.add('active');
+            }
+        });
+    }
+
+    if (reviewActionClose) reviewActionClose.addEventListener('click', () => reviewActionModal.classList.remove('active'));
+
+    if (mobileBestReviewBtn) {
+        mobileBestReviewBtn.addEventListener('click', () => {
+            if (currentMobileReviewId) {
+                window.toggleBestReview(currentMobileReviewId, currentMobileReviewBest);
+                reviewActionModal.classList.remove('active');
+            }
+        });
+    }
+
+    if (mobileDeleteReviewBtn) {
+        mobileDeleteReviewBtn.addEventListener('click', () => {
+            if (currentMobileReviewId) {
+                window.deleteReview(currentMobileReviewId);
+                reviewActionModal.classList.remove('active');
+            }
+        });
+    }
+
+    // Order Status Action Logic (Mobile)
+    const orderDetailModal = document.getElementById('order-detail-modal');
+    const orderDetailClose = document.getElementById('order-detail-close');
+    const modalCloseBtns = document.querySelectorAll('.modal-close-btn');
+
+    if (orderDetailClose) orderDetailClose.addEventListener('click', () => orderDetailModal.classList.remove('active'));
+    modalCloseBtns.forEach(btn => btn.addEventListener('click', () => {
+        const modal = btn.closest('.modal-overlay');
+        if (modal) modal.classList.remove('active');
+    }));
 
     let productToDeleteId = null;
     let productToWipeId = null;
@@ -1334,14 +1685,22 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             if (btn.classList.contains('logout-btn')) { 
                 Firewall.terminateSession();
+                if (adminSidebar && adminSidebar.classList.contains('active')) toggleAdminSidebar();
                 return; 
             }
             if (!Firewall.isAuthenticated()) return;
 
             document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active'); document.getElementById(`admin-${btn.dataset.tab}`).classList.add('active');
-            
+            btn.classList.add('active'); 
+            const tabEl = document.getElementById(`admin-${btn.dataset.tab}`);
+            if (tabEl) tabEl.classList.add('active');
+
+            // Auto-close sidebar on mobile after selection
+            if (window.innerWidth <= 900 && adminSidebar && adminSidebar.classList.contains('active')) {
+                toggleAdminSidebar();
+            }
+
             if (btn.dataset.tab === 'logs') renderLogs();
             if (btn.dataset.tab === 'trash') renderTrash();
         });
@@ -1666,4 +2025,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Slight delay for smooth entrance
     setTimeout(hideLoader, 1500);
+
+    // START LISTENERS LAST
+    startListeners();
 });

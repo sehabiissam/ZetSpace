@@ -437,8 +437,23 @@
 
     <!-- Admin View -->
     <section id="admin" class="admin-view section view">
+        <!-- Admin Mobile Toggle -->
+        <div class="admin-mobile-nav-bar">
+            <button id="admin-sidebar-toggle" class="admin-sidebar-toggle">
+                <i class="fa-solid fa-bars-staggered"></i>
+                <span>SYSTEM MENU</span>
+            </button>
+            <div class="admin-status-indicator">
+                <span class="pulse"></span>
+                ONLINE
+            </div>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
         <div class="container admin-container">
-            <aside class="admin-sidebar">
+            <aside class="admin-sidebar" id="admin-sidebar">
+                <button class="admin-sidebar-close" id="admin-sidebar-close">&times;</button>
                 <div class="admin-user">
                     <div class="user-avatar"><i class="fa-solid fa-user-shield"></i></div>
                     <div>
@@ -472,7 +487,6 @@
                                     <th>NAME</th>
                                     <th>CATEGORY</th>
                                     <th>PRICE</th>
-                                    <th>STATUS</th>
                                     <th>ACTIONS</th>
                                 </tr>
                             </thead>
@@ -492,12 +506,12 @@
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>CUSTOMER</th>
-                                    <th>ITEMS</th>
-                                    <th>TOTAL</th>
-                                    <th>STATUS</th>
-                                    <th>DATE</th>
+                                    <th>ADDRESS</th>
+                                    <th class="desktop-only">GEAR</th>
+                                    <th class="desktop-only">TOTAL</th>
+                                    <th class="desktop-only">STATUS</th>
+                                    <th class="desktop-only">DATE</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-order-list">
@@ -563,6 +577,7 @@
                 <div id="admin-logs" class="admin-tab">
                     <div class="admin-header">
                         <h2>ACTIVITY <span class="accent">LOGS</span></h2>
+                        <button class="btn btn-mini" style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);" onclick="promptDeleteAllLogs()"><i class="fa-solid fa-dumpster-fire"></i> DELETE ALL LOGS</button>
                     </div>
                     <div class="admin-table-wrapper">
                         <table class="admin-table">
@@ -612,6 +627,69 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Product Action Modal (Mobile only) -->
+    <div class="modal-overlay" id="product-action-modal">
+        <div class="modal-content modal-compact">
+            <button class="modal-close" id="product-action-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-box"></i></div>
+                <h2 class="modal-title">GEAR <span class="accent">COMMAND</span></h2>
+                <p id="m-product-name" style="font-weight: 700; color: #fff; margin-top: 5px;"></p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem;">
+                <button type="button" class="btn btn-primary btn-full" id="mobile-edit-btn">
+                    <i class="fa-solid fa-pen"></i> EDIT GEAR
+                </button>
+                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-btn" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                    <i class="fa-solid fa-trash-can"></i> MOVE TO TRASH
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trash Action Modal (Mobile only) -->
+    <div class="modal-overlay" id="trash-action-modal">
+        <div class="modal-content modal-compact">
+            <button class="modal-close" id="trash-action-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-toolbox"></i></div>
+                <h2 class="modal-title">TRASH <span class="accent">COMMAND</span></h2>
+                <p id="trash-item-title" style="font-weight: 700; color: #fff; margin-top: 5px;"></p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem;">
+                <button type="button" class="btn btn-primary btn-full" id="mobile-restore-btn">
+                    <i class="fa-solid fa-rotate-left"></i> RESTORE GEAR
+                </button>
+                <button type="button" class="btn btn-outline btn-full" id="mobile-permanent-delete-btn" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                    <i class="fa-solid fa-fire"></i> ERASE PERMANENTLY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Action Modal (Mobile only) -->
+    <div class="modal-overlay" id="review-action-modal">
+        <div class="modal-content modal-compact">
+            <button class="modal-close" id="review-action-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-star"></i></div>
+                <h2 class="modal-title">REVIEW <span class="accent">COMMAND</span></h2>
+                <p id="m-reviewer-name" style="font-weight: 700; color: #fff; margin-top: 5px;"></p>
+                <div id="m-review-stars" style="margin-top: 10px;"></div>
+            </div>
+            <div id="m-review-message" style="margin-top: 1.5rem; font-size: 0.8rem; line-height: 1.6; opacity: 0.8; text-align: left; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); max-height: 150px; overflow-y: auto;"></div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem;">
+                <button type="button" class="btn btn-primary btn-full" id="mobile-best-review-btn">
+                    <i class="fa-solid fa-award"></i> TOGGLE BEST REVIEW
+                </button>
+                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-review-btn" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                    <i class="fa-solid fa-trash-can"></i> PURGE REVIEW
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div class="modal-overlay" id="delete-modal">
         <div class="modal-content modal-compact">
@@ -638,6 +716,94 @@
             <div style="display: flex; gap: 10px; margin-top: 2rem;">
                 <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
                 <button type="button" class="btn btn-primary btn-full" id="confirm-wipe-btn" style="background: #ff0000; border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.4);">WIPE FOREVER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete All Logs Modal -->
+    <div class="modal-overlay" id="delete-all-logs-modal">
+        <div class="modal-content modal-compact">
+            <div class="modal-header">
+                <div class="login-icon" style="color: #ff4d4d; filter: drop-shadow(0 0 10px #ff4d4d);"><i class="fa-solid fa-dumpster-fire"></i></div>
+                <h2 class="modal-title">PURGE <span class="accent">HISTORY?</span></h2>
+                <p>This will permanently erase all system activity logs. This action cannot be undone.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-all-logs-btn" style="background: #ff4d4d; border-color: #ff4d4d; box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);">CONFIRM PURGE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="order-detail-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="order-detail-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-receipt"></i></div>
+                <h2 class="modal-title">ORDER <span class="accent">DETAILS</span></h2>
+                <p id="dt-order-id" style="font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.5; margin-top: 5px;"></p>
+            </div>
+            
+            <div class="order-detail-body" style="margin-top: 2rem; max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                <div class="detail-section" style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">CUSTOMER DATA</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">NAME</label>
+                            <p id="dt-customer-name" style="font-weight: 700;"></p>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">EMAIL</label>
+                            <p id="dt-customer-email" style="font-size: 0.8rem;"></p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">SHIPPING ADDRESS</label>
+                        <p id="dt-customer-address" style="font-size: 0.8rem; line-height: 1.4;"></p>
+                    </div>
+                </div>
+
+                <div class="detail-section" style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">ORDERED GEAR</h3>
+                    <div id="dt-items-list" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Items will be injected here -->
+                    </div>
+                </div>
+
+                <div class="detail-section" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+                    <div>
+                        <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">STATUS & DATE</h3>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div id="dt-order-status" class="status-badge">PENDING</div>
+                            <p id="dt-order-date" style="font-size: 0.7rem; opacity: 0.5;"></p>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">TOTAL COARSE</label>
+                        <p id="dt-total-price" style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-heading); color: var(--accent);"></p>
+                    </div>
+                </div>
+
+                <!-- Mobile Quick Actions -->
+                <div id="dt-mobile-actions" style="display: none; flex-direction: column; gap: 12px; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); pt: 1.5rem;">
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: var(--accent);">QUICK COMMANDS</h3>
+                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="COMPLETED" style="background: #00ff8033; color: #00ff80; border-color: #00ff8033;">
+                        <i class="fa-solid fa-check"></i> COMPLETED
+                    </button>
+                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="PROCESSING" style="background: #00d4ff33; color: #00d4ff; border-color: #00d4ff33;">
+                        <i class="fa-solid fa-clock"></i> PROCESSING
+                    </button>
+                    <button type="button" class="btn btn-outline btn-full m-dt-btn" data-status="CANCELLED" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                        <i class="fa-solid fa-ban"></i> CANCEL
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 10px;" id="dt-footer">
+                <button type="button" class="btn btn-outline btn-full modal-close-btn">DISMISS</button>
+                <div style="display: flex; flex: 1; gap: 10px;" id="order-status-controls">
+                </div>
             </div>
         </div>
     </div>
@@ -692,10 +858,12 @@
                         </div>
                     </div>
                     
-                    <div id="p-img-preview-container" style="margin-top: 15px; display: none; text-align: center; border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                    <div id="p-img-preview-container" style="margin-top: 15px; display: none; text-align: center; border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2);">
                         <p style="font-size: 0.6rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase;">PREVIEW</p>
-                        <img id="p-img-preview" src="" alt="PREVIEW" style="max-width: 100%; max-height: 150px; border-radius: 4px; object-fit: contain;">
-                        <button type="button" id="remove-preview" class="btn btn-mini" style="margin-top: 5px; color: #ff4d4d; border-color: rgba(255,77,77,0.2);">REMOVE</button>
+                        <div style="width: 100%; max-width: 150px; height: auto; max-height: 150px; margin: 0 auto 10px; position: relative; border-radius: 6px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 0 15px var(--accent-glow);">
+                            <img id="p-img-preview" src="" alt="PREVIEW" style="width: 100%; height: auto; max-height: 100%; object-fit: contain;">
+                        </div>
+                        <button type="button" id="remove-preview" class="btn btn-mini" style="margin-top: 5px; color: #ff4d4d; border-color: rgba(255,77,77,0.2); font-size: 0.55rem;">REMOVE IMAGE</button>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px;">
