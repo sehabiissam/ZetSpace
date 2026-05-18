@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3DRIP | REVIEWS - LUXURY STREETWEAR 2026</title>
+    <meta name="loaderio" content="loaderio-1cf841f9393eb5eb901afaacd7b43506" />
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-glow"></div>
+
+    <!-- App Loading Overlay -->
+    <div id="app-loading"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png" alt="3DRIP"
+            class="loading-logo"
+            style="max-height: 110px; margin-bottom: 2rem; filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));">
+        <div class="loading-bar-container"
+            style="width: 200px; height: 1px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden;">
+            <div class="loading-bar-progress"
+                style="position: absolute; top: 0; left: 0; height: 100%; background: var(--accent, #8a2be2); width: 30%; animation: loading-slide 2s infinite ease-in-out;">
+            </div>
+        </div>
+        <p
+            style="margin-top: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.3em; color: rgba(255,255,255,0.4);">
+            SYNCHRONIZING WITH MAINFRAME</p>
+    </div>
+
+    <!-- Background Canvas for Particles -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png"
+                    alt="3DRIP" class="logo-img">
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="shop.html">SHOP</a></li>
+                <li><a href="index.html#about">ABOUT</a></li>
+                <li><a href="reviews.html">REVIEWS</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="https://instagram.com/three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn"
+                    aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+                <a href="https://tiktok.com/@three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn"
+                    aria-label="TikTok">
+                    <i class="fa-brands fa-tiktok"></i>
+                </a>
+                <button class="icon-btn search-trigger" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button class="icon-btn cart-trigger" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="menu-close" id="menu-close">&times;</button>
+        <div class="mobile-menu-content">
+            <ul class="mobile-nav-links">
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="shop.html">SHOP</a></li>
+                <li><a href="index.html#about">ABOUT</a></li>
+                <li><a href="reviews.html">REVIEWS</a></li>
+                <li><a href="shop.html#cart" class="mobile-cart-link"><i class="fa-solid fa-bag-shopping"></i> CART (<span
+                            class="cart-count-mobile">0</span>)</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Reviews View -->
+    <section id="reviews" class="reviews-view section view active">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">COMMUNITY <span class="accent">VIBE</span></h2>
+                <p class="section-desc">Real feedback from the citizens of the grid.</p>
+                <button class="btn btn-mini" id="write-review-btn" style="margin-top: 1.5rem;"><i
+                        class="fa-solid fa-pen-to-square"></i> LEAVE A REVIEW</button>
+            </div>
+
+            <div class="reviews-grid" id="public-reviews-list">
+                <!-- Published reviews will appear here -->
+                <p class="empty-msg">THE ARCHIVE IS CURRENTLY EMPTY. BE THE FIRST TO LOG YOUR FEEDBACK.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Review Modal -->
+    <div class="modal-overlay" id="review-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="review-modal-close">&times;</button>
+            <div class="section-header">
+                <h2>LOG <span class="accent">FEEDBACK</span></h2>
+                <p class="section-desc">Share your experience with the grid.</p>
+            </div>
+            <form id="review-form" class="checkout-form">
+                <div class="form-group">
+                    <label>IDENTIFIER (NAME)</label>
+                    <input type="text" id="rev-name" placeholder="YOUR NAME" required>
+                </div>
+                <div class="form-group">
+                    <label>AVATAR (OPTIONAL)</label>
+                    <div class="image-toggle-container"
+                        style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="button" class="btn btn-mini rev-img-mode active" data-mode="none"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">NONE</button>
+                        <button type="button" class="btn btn-mini rev-img-mode" data-mode="upload"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">UPLOAD</button>
+                    </div>
+                    <div id="rev-img-upload-wrapper" style="display: none;">
+                        <input type="file" id="rev-avatar-file" accept="image/*"
+                            style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>RATING</label>
+                    <div class="star-rating" id="star-input">
+                        <i class="fa-solid fa-star" data-rating="1"></i>
+                        <i class="fa-solid fa-star" data-rating="2"></i>
+                        <i class="fa-solid fa-star" data-rating="3"></i>
+                        <i class="fa-solid fa-star" data-rating="4"></i>
+                        <i class="fa-solid fa-star" data-rating="5"></i>
+                    </div>
+                    <input type="hidden" id="rev-rating" value="5">
+                </div>
+                <div class="form-group">
+                    <label>TRANSMISSION (MESSAGE)</label>
+                    <textarea id="rev-message" placeholder="WHAT'S THE WORD ON THE STREET?" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="submit-review-btn">TRANSMIT REVIEW</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Gate Modal -->
+    <div class="modal-overlay" id="admin-gate-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="admin-modal-close">&times;</button>
+            <div class="section-header">
+                <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
+                <h2 class="section-title">ADMIN <span class="accent">LOGIN</span></h2>
+                <p class="section-desc">AUTHENTICATION REQUIRED FOR SYSTEM OVERRIDE.</p>
+            </div>
+            <form id="admin-login-form" class="checkout-form">
+                <div class="form-group">
+                    <label>ADMIN EMAIL</label>
+                    <input type="email" id="admin-email" placeholder="AUTHORIZED EMAIL" required>
+                </div>
+                <div class="form-group">
+                    <label>SYSTEM ACCESS KEY</label>
+                    <input type="password" id="admin-password" placeholder="ENCRYPTION KEY" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-lock"></i> SYSTEM
+                    LOGIN</button>
+                <p id="login-error" class="error-msg"
+                    style="display: none; color: #ff4d4d; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;">
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Review Action Modal (Mobile only) -->
+    <div class="modal-overlay" id="review-action-modal">
+        <div class="modal-content modal-compact">
+            <button class="modal-close" id="review-action-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-star"></i></div>
+                <h2 class="modal-title">REVIEW <span class="accent">COMMAND</span></h2>
+                <p id="m-reviewer-name" style="font-weight: 700; color: #fff; margin-top: 5px;"></p>
+                <div id="m-review-stars" style="margin-top: 10px;"></div>
+            </div>
+
+            <div id="m-review-message"
+                style="margin-top: 1.5rem; font-size: 0.8rem; line-height: 1.6; opacity: 0.8; text-align: left; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem;">
+                <button type="button" class="btn btn-primary btn-full" id="mobile-best-review-btn">
+                    <i class="fa-solid fa-award"></i> TOGGLE BEST REVIEW
+                </button>
+                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-review-btn"
+                    style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                    <i class="fa-solid fa-trash-can"></i> PURGE REVIEW
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
