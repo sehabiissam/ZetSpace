@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3DRIP | SHOP - LUXURY STREETWEAR 2026</title>
+    <meta name="loaderio" content="loaderio-1cf841f9393eb5eb901afaacd7b43506" />
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-glow"></div>
+
+    <!-- App Loading Overlay -->
+    <div id="app-loading"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; t[...]
+        <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png" alt="3DRIP"
+            class="loading-logo"
+            style="max-height: 110px; margin-bottom: 2rem; filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));">
+        <div class="loading-bar-container"
+            style="width: 200px; height: 1px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden;">
+            <div class="loading-bar-progress"
+                style="position: absolute; top: 0; left: 0; height: 100%; background: var(--accent, #8a2be2); width: 30%; animation: loading-slide 2s infinite ease-in-out;">
+            </div>
+        </div>
+        <p
+            style="margin-top: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.3em; color: rgba(255,255,255,0.4);">
+            SYNCHRONIZING WITH MAINFRAME</p>
+    </div>
+
+    <!-- Background Canvas for Particles -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png"
+                    alt="3DRIP" class="logo-img">
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="shop.html">SHOP</a></li>
+                <li><a href="index.html#about">ABOUT</a></li>
+                <li><a href="reviews.html">REVIEWS</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="https://instagram.com/three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn"
+                    aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+                <a href="https://tiktok.com/@three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn"
+                    aria-label="TikTok">
+                    <i class="fa-brands fa-tiktok"></i>
+                </a>
+                <button class="icon-btn search-trigger" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button class="icon-btn cart-trigger" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="menu-close" id="menu-close">&times;</button>
+        <div class="mobile-menu-content">
+            <ul class="mobile-nav-links">
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="shop.html">SHOP</a></li>
+                <li><a href="index.html#about">ABOUT</a></li>
+                <li><a href="reviews.html">REVIEWS</a></li>
+                <li><a href="#cart" class="mobile-cart-link"><i class="fa-solid fa-bag-shopping"></i> CART (<span
+                            class="cart-count-mobile">0</span>)</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Shop / Collections -->
+    <section id="shop" class="collection section view active">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">FULL <span class="accent">CATALOG</span></h2>
+                <p class="section-desc">Handcrafted streetwear essentials for the modern pioneer.</p>
+            </div>
+            <div class="product-filter-bar" id="product-filter-bar" aria-label="Product category filter"></div>
+            <div class="product-grid" id="main-product-grid">
+                <!-- Products will be dynamically generated -->
+                <p class="empty-msg">LOADING PRODUCTS...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Section -->
+    <section id="cart" class="cart-view section view">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">YOUR <span class="accent">DRIP</span> BAG</h2>
+                <p class="section-desc">Review your selection before entering the grid.</p>
+            </div>
+            <div class="cart-container">
+                <div class="cart-items" id="cart-items-list">
+                    <!-- Dynamic Cart Items -->
+                    <p class="empty-msg">YOUR BAG IS EMPTY. START EXPLORING.</p>
+                </div>
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>SUBTOTAL</span>
+                        <span id="subtotal">0 DZD</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>DELIVERY</span>
+                        <span>500 DZD</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>TOTAL</span>
+                        <span id="total-price" class="accent">500 DZD</span>
+                    </div>
+                    <button class="btn btn-primary btn-full checkout-trigger">ORDER NOW</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Checkout Modal -->
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title">SECURE <span class="accent">CHECKOUT</span></h2>
+                <p>Complete your deployment in the streets.</p>
+            </div>
+            <form class="checkout-form" id="order-form">
+                <div class="form-group">
+                    <label>FULL NAME</label>
+                    <input type="text" placeholder="ENTER YOUR NAME" required>
+                </div>
+                <div class="form-group">
+                    <label>EMAIL ADDRESS</label>
+                    <input type="email" placeholder="ENTER YOUR EMAIL" required>
+                </div>
+                <div class="form-group">
+                    <label>SHIPPING ADDRESS</label>
+                    <textarea placeholder="FULL ADDRESS (CITY, WILAYA)" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">CONFIRM ORDER</button>
+            </form>
+            <div class="order-success" id="order-success">
+                <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <h3>DEPLOYMENT SUCCESSFUL</h3>
+                <p>Your order has been logged into the matrix. Expect a call for confirmation shortly.</p>
+                <button class="btn btn-outline btn-full back-to-shop">BACK TO SHOP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Gate Modal -->
+    <div class="modal-overlay" id="admin-gate-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="admin-modal-close">&times;</button>
+            <div class="section-header">
+                <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
+                <h2 class="section-title">ADMIN <span class="accent">LOGIN</span></h2>
+                <p class="section-desc">AUTHENTICATION REQUIRED FOR SYSTEM OVERRIDE.</p>
+            </div>
+            <form id="admin-login-form" class="checkout-form">
+                <div class="form-group">
+                    <label>ADMIN EMAIL</label>
+                    <input type="email" id="admin-email" placeholder="AUTHORIZED EMAIL" required>
+                </div>
+                <div class="form-group">
+                    <label>SYSTEM ACCESS KEY</label>
+                    <input type="password" id="admin-password" placeholder="ENCRYPTION KEY" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-lock"></i> SYSTEM
+                    LOGIN</button>
+                <p id="login-error" class="error-msg"
+                    style="display: none; color: #ff4d4d; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;">
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Product Action Modal (Mobile only) -->
+    <div class="modal-overlay" id="product-action-modal">
+        <div class="modal-content modal-compact">
+            <button class="modal-close" id="product-action-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-box"></i></div>
+                <h2 class="modal-title">GEAR <span class="accent">COMMAND</span></h2>
+                <p id="m-product-name" style="font-weight: 700; color: #fff; margin-top: 5px;"></p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem;">
+                <button type="button" class="btn btn-primary btn-full" id="mobile-edit-btn">
+                    <i class="fa-solid fa-pen"></i> EDIT GEAR
+                </button>
+                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-btn"
+                    style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                    <i class="fa-solid fa-trash-can"></i> MOVE TO TRASH
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal-content modal-compact">
+            <div class="modal-header">
+                <div class="login-icon" style="color: #ff4d4d;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h2 class="modal-title">TERMINATE <span class="accent">ENTRY?</span></h2>
+                <p>This action will move this gear to the trash system.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-btn"
+                    style="background: #ff4d4d; border-color: #ff4d4d;">DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Management Modal -->
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title" id="product-modal-title">ADD <span class="accent">PRODUCT</span></h2>
+                <p>Register new gear into the 3DRIP ecosystem.</p>
+            </div>
+            <form class="checkout-form" id="product-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>PRODUCT NAME</label>
+                    <input type="text" id="p-name" placeholder="E.G. NOCTURNAL HOODIE" required>
+                </div>
+                <div class="form-group">
+                    <label>CATEGORY</label>
+                    <select id="p-category" class="admin-select">
+                        <option value="HOODIE">HOODIE</option>
+                        <option value="T-SHIRT">T-SHIRT</option>
+                        <option value="BOTTOMS">BOTTOMS</option>
+                        <option value="OUTERWEAR">OUTERWEAR</option>
+                        <option value="ACCESSORIES">ACCESSORIES</option>
+                        <option value="FOOTWEAR">FOOTWEAR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>PRICE (DZD)</label>
+                    <input type="number" id="p-price" placeholder="E.G. 8900" required>
+                </div>
+                <div class="form-group">
+                    <label>PRODUCT IMAGE</label>
+                    <div class="image-toggle-container"
+                        style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="button" class="btn btn-mini product-img-mode active" data-mode="url"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">URL</button>
+                        <button type="button" class="btn btn-mini product-img-mode" data-mode="upload"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">UPLOAD</button>
+                    </div>
+                    <div id="p-img-url-wrapper">
+                        <input type="text" id="p-img" placeholder="IMAGE URL">
+                    </div>
+                    <div id="p-img-upload-wrapper" style="display: none;">
+                        <div id="image-dropzone"
+                            style="border: 2px dashed rgba(255,255,255,0.1); padding: 2rem; text-align: center; border-radius: 8px; cursor: pointer; position: relative; transition: var(--transition-fast);">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                            <p style="font-size: 0.8rem; opacity: 0.7;">DRAG GEAR OR <span class="accent">BROWSE</span></p>
+                            <input type="file" id="p-img-file" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    <div id="p-img-preview-container" style="display: none; margin-top: 1rem;">
+                        <img id="p-img-preview" src="" style="max-width: 100%; height: auto; border-radius: 8px;">
+                        <button type="button" id="remove-preview" class="btn btn-mini" style="margin-top: 0.5rem; background: #ff4d4d;">REMOVE</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="product-save-btn">SAVE PRODUCT</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
