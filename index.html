@@ -1,28 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3DRIP | LUXURY STREETWEAR 2026</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;700&display=swap"
+        rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- Custom Cursor -->
     <div class="cursor"></div>
     <div class="cursor-glow"></div>
 
     <!-- App Loading Overlay -->
-    <div id="app-loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s ease;">
-        <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png" alt="3DRIP" class="loading-logo" style="max-height: 110px; margin-bottom: 2rem; filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));">
-        <div class="loading-bar-container" style="width: 200px; height: 1px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden;">
-            <div class="loading-bar-progress" style="position: absolute; top: 0; left: 0; height: 100%; background: var(--accent, #8a2be2); width: 30%; animation: loading-slide 2s infinite ease-in-out;"></div>
+    <div id="app-loading"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s ease;">
+        <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png" alt="3DRIP"
+            class="loading-logo"
+            style="max-height: 110px; margin-bottom: 2rem; filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));">
+        <div class="loading-bar-container"
+            style="width: 200px; height: 1px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden;">
+            <div class="loading-bar-progress"
+                style="position: absolute; top: 0; left: 0; height: 100%; background: var(--accent, #8a2be2); width: 30%; animation: loading-slide 2s infinite ease-in-out;">
+            </div>
         </div>
-        <p style="margin-top: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.3em; color: rgba(255,255,255,0.4);">SYNCHRONIZING WITH MAINFRAME</p>
+        <p
+            style="margin-top: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 0.3em; color: rgba(255,255,255,0.4);">
+            SYNCHRONIZING WITH MAINFRAME</p>
     </div>
 
     <!-- Background Canvas for Particles -->
@@ -32,7 +44,8 @@
     <nav class="nav">
         <div class="container nav-container">
             <a href="#home" class="nav-logo">
-                <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png" alt="3DRIP" class="logo-img">
+                <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png"
+                    alt="3DRIP" class="logo-img">
             </a>
             <ul class="nav-links">
                 <li><a href="#home">HOME</a></li>
@@ -41,10 +54,12 @@
                 <li><a href="#reviews">REVIEWS</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="https://instagram.com/three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn" aria-label="Instagram">
+                <a href="https://instagram.com/three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn"
+                    aria-label="Instagram">
                     <i class="fa-brands fa-instagram"></i>
                 </a>
-                <a href="https://tiktok.com/@three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn" aria-label="TikTok">
+                <a href="https://tiktok.com/@three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn"
+                    aria-label="TikTok">
                     <i class="fa-brands fa-tiktok"></i>
                 </a>
                 <button class="icon-btn search-trigger" aria-label="Search">
@@ -72,7 +87,8 @@
                 <li><a href="#shop">SHOP</a></li>
                 <li><a href="#about">ABOUT</a></li>
                 <li><a href="#reviews">REVIEWS</a></li>
-                <li><a href="#cart" class="mobile-cart-link"><i class="fa-solid fa-bag-shopping"></i> CART (<span class="cart-count-mobile">0</span>)</a></li>
+                <li><a href="#cart" class="mobile-cart-link"><i class="fa-solid fa-bag-shopping"></i> CART (<span
+                            class="cart-count-mobile">0</span>)</a></li>
             </ul>
         </div>
     </div>
@@ -82,7 +98,8 @@
         <div class="hero-bg">
             <div class="hero-overlay"></div>
             <!-- Placeholder for cinematic background -->
-            <img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=1920" alt="3DRIP Cinematic Background" class="hero-img">
+            <img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=1920"
+                alt="3DRIP Cinematic Background" class="hero-img">
         </div>
         <div class="container hero-content">
             <div class="reveal">
@@ -128,9 +145,11 @@
             </div>
             <div class="product-grid">
                 <!-- Product 1 -->
-                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900" data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900"
+                    data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600" alt="Futuristic Hoodie">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600"
+                            alt="Futuristic Hoodie">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -144,9 +163,11 @@
                     </div>
                 </div>
                 <!-- Product 2 -->
-                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500" data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500"
+                    data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600" alt="Cyber Tee">
+                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600"
+                            alt="Cyber Tee">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -160,9 +181,11 @@
                     </div>
                 </div>
                 <!-- Product 3 -->
-                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200" data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200"
+                    data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600" alt="Cargo Pants">
+                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600"
+                            alt="Cargo Pants">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -189,12 +212,15 @@
                 <h2 class="section-title">FULL <span class="accent">CATALOG</span></h2>
                 <p class="section-desc">Handcrafted streetwear essentials for the modern pioneer.</p>
             </div>
+            <div class="product-filter-bar" id="product-filter-bar" aria-label="Product category filter"></div>
             <div class="product-grid" id="main-product-grid">
                 <!-- Products will be dynamically generated or stay static -->
                 <!-- Product 1 -->
-                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900" data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900"
+                    data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600" alt="Futuristic Hoodie">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600"
+                            alt="Futuristic Hoodie">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -208,9 +234,11 @@
                     </div>
                 </div>
                 <!-- Product 2 -->
-                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500" data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500"
+                    data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600" alt="Cyber Tee">
+                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600"
+                            alt="Cyber Tee">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -224,9 +252,11 @@
                     </div>
                 </div>
                 <!-- Product 3 -->
-                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200" data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200"
+                    data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600" alt="Cargo Pants">
+                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600"
+                            alt="Cargo Pants">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -240,9 +270,11 @@
                     </div>
                 </div>
                 <!-- Product 4 -->
-                <div class="product-card" data-id="4" data-name="URBAN EXPLORER SHELL" data-price="12500" data-img="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="4" data-name="URBAN EXPLORER SHELL" data-price="12500"
+                    data-img="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600" alt="Tech Jacket">
+                        <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600"
+                            alt="Tech Jacket">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -256,9 +288,11 @@
                     </div>
                 </div>
                 <!-- Product 5 (New) -->
-                <div class="product-card" data-id="5" data-name="NIGHTHAWK STRIKE CAP" data-price="3200" data-img="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="5" data-name="NIGHTHAWK STRIKE CAP" data-price="3200"
+                    data-img="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600" alt="Street Cap">
+                        <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600"
+                            alt="Street Cap">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -272,9 +306,11 @@
                     </div>
                 </div>
                 <!-- Product 6 (New) -->
-                <div class="product-card" data-id="6" data-name="FUTURA MESH SNEAKERS" data-price="18900" data-img="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600">
+                <div class="product-card" data-id="6" data-name="FUTURA MESH SNEAKERS" data-price="18900"
+                    data-img="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600">
                     <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600" alt="Futuristic Sneakers">
+                        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600"
+                            alt="Futuristic Sneakers">
                         <div class="product-overlay">
                             <button class="btn btn-mini add-to-cart">ADD TO CART</button>
                         </div>
@@ -360,9 +396,10 @@
             <div class="section-header">
                 <h2 class="section-title">COMMUNITY <span class="accent">VIBE</span></h2>
                 <p class="section-desc">Real feedback from the citizens of the grid.</p>
-                <button class="btn btn-mini" id="write-review-btn" style="margin-top: 1.5rem;"><i class="fa-solid fa-pen-to-square"></i> LEAVE A REVIEW</button>
+                <button class="btn btn-mini" id="write-review-btn" style="margin-top: 1.5rem;"><i
+                        class="fa-solid fa-pen-to-square"></i> LEAVE A REVIEW</button>
             </div>
-            
+
             <div class="reviews-grid" id="public-reviews-list">
                 <!-- Published reviews will appear here -->
                 <p class="empty-msg">THE ARCHIVE IS CURRENTLY EMPTY. BE THE FIRST TO LOG YOUR FEEDBACK.</p>
@@ -385,12 +422,16 @@
                 </div>
                 <div class="form-group">
                     <label>AVATAR (OPTIONAL)</label>
-                    <div class="image-toggle-container" style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
-                        <button type="button" class="btn btn-mini rev-img-mode active" data-mode="none" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">NONE</button>
-                        <button type="button" class="btn btn-mini rev-img-mode" data-mode="upload" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">UPLOAD</button>
+                    <div class="image-toggle-container"
+                        style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="button" class="btn btn-mini rev-img-mode active" data-mode="none"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">NONE</button>
+                        <button type="button" class="btn btn-mini rev-img-mode" data-mode="upload"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">UPLOAD</button>
                     </div>
                     <div id="rev-img-upload-wrapper" style="display: none;">
-                        <input type="file" id="rev-avatar-file" accept="image/*" style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">
+                        <input type="file" id="rev-avatar-file" accept="image/*"
+                            style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">
                     </div>
                 </div>
                 <div class="form-group">
@@ -429,8 +470,11 @@
                     <label>SYSTEM ACCESS KEY</label>
                     <input type="password" id="admin-password" placeholder="ENCRYPTION KEY" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-lock"></i> SYSTEM LOGIN</button>
-                <p id="login-error" class="error-msg" style="display: none; color: #ff4d4d; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;"></p>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-lock"></i> SYSTEM
+                    LOGIN</button>
+                <p id="login-error" class="error-msg"
+                    style="display: none; color: #ff4d4d; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;">
+                </p>
             </form>
         </div>
     </div>
@@ -462,13 +506,19 @@
                     </div>
                 </div>
                 <nav class="admin-nav">
-                    <button class="admin-nav-btn active" data-tab="products"><i class="fa-solid fa-box"></i> PRODUCTS</button>
+                    <button class="admin-nav-btn active" data-tab="products"><i class="fa-solid fa-box"></i>
+                        PRODUCTS</button>
                     <button class="admin-nav-btn" data-tab="orders"><i class="fa-solid fa-receipt"></i> ORDERS</button>
                     <button class="admin-nav-btn" data-tab="reviews"><i class="fa-solid fa-star"></i> REVIEWS</button>
+                    <button class="admin-nav-btn" data-tab="categories"><i class="fa-solid fa-layer-group"></i>
+                        CATEGORIES</button>
                     <button class="admin-nav-btn" data-tab="trash"><i class="fa-solid fa-trash-can"></i> TRASH</button>
-                    <button class="admin-nav-btn" data-tab="logs"><i class="fa-solid fa-clipboard-list"></i> LOGS</button>
-                    <button class="admin-nav-btn" data-tab="security"><i class="fa-solid fa-shield-halved"></i> SECURITY</button>
-                    <button class="admin-nav-btn logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> LOGOUT</button>
+                    <button class="admin-nav-btn" data-tab="logs"><i class="fa-solid fa-clipboard-list"></i>
+                        LOGS</button>
+                    <button class="admin-nav-btn" data-tab="security"><i class="fa-solid fa-shield-halved"></i>
+                        SECURITY</button>
+                    <button class="admin-nav-btn logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        LOGOUT</button>
                 </nav>
             </aside>
 
@@ -477,7 +527,8 @@
                 <div id="admin-products" class="admin-tab active">
                     <div class="admin-header">
                         <h2>PRODUCT <span class="accent">DATABASE</span></h2>
-                        <button class="btn btn-mini" id="add-product-trigger"><i class="fa-solid fa-plus"></i> ADD PRODUCT</button>
+                        <button class="btn btn-mini" id="add-product-trigger"><i class="fa-solid fa-plus"></i> ADD
+                            PRODUCT</button>
                     </div>
                     <div class="admin-table-wrapper">
                         <table class="admin-table">
@@ -521,6 +572,40 @@
                     </div>
                 </div>
 
+                <!-- Categories Management Tab -->
+                <div id="admin-categories" class="admin-tab">
+                    <div class="admin-header">
+                        <h2>CATEGORY <span class="accent">MANAGEMENT</span></h2>
+                    </div>
+                    <p class="admin-note">Create and manage product categories. Deletion is blocked while products are
+                        still assigned to a category.</p>
+                    <form id="category-form" class="checkout-form" style="margin-bottom: 2rem;">
+                        <div class="form-group">
+                            <label>CATEGORY NAME</label>
+                            <input type="text" id="category-name" placeholder="E.G. HOODIE" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">CREATE CATEGORY</button>
+                    </form>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>CATEGORY</th>
+                                    <th class="desktop-only">PRODUCTS</th>
+                                    <th>CREATED</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-category-list">
+                                <tr>
+                                    <td colspan="4" style="text-align:center; opacity: 0.5; padding: 2rem;">NO
+                                        CATEGORIES CONFIGURED. ADD ONE TO START.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Reviews Moderation Tab -->
                 <div id="admin-reviews" class="admin-tab">
                     <div class="admin-header">
@@ -552,23 +637,34 @@
                     </div>
                     <div class="security-card">
                         <div class="security-info">
-                            <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--accent); margin-bottom: 2rem; display: block;"></i>
+                            <i class="fa-solid fa-shield-halved"
+                                style="font-size: 3rem; color: var(--accent); margin-bottom: 2rem; display: block;"></i>
                             <h3 style="margin-bottom: 1rem;">FIREBASE SHIELD ACTIVE</h3>
-                            <p style="opacity: 0.7; line-height: 1.6;">Identity verification is now managed by Google Identity Platform & Firebase Auth. The current system command is locked to authorized agent emails only.</p>
-                            <p style="margin-top: 1rem; color: var(--accent); font-weight: 700;">AUTHORIZED AGENT: sehabiissam8@gmail.com</p>
+                            <p style="opacity: 0.7; line-height: 1.6;">Identity verification is now managed by Google
+                                Identity Platform & Firebase Auth. The current system command is locked to authorized
+                                agent emails only.</p>
+                            <p style="margin-top: 1rem; color: var(--accent); font-weight: 700;">AUTHORIZED AGENT:
+                                sehabiissam8@gmail.com</p>
                         </div>
-                        <form id="security-update-form" class="checkout-form" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
-                            <p class="admin-note" style="margin-bottom: 1.5rem; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-key"></i> UPDATE SYSTEM ACCESS KEY</p>
+                        <form id="security-update-form" class="checkout-form"
+                            style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+                            <p class="admin-note"
+                                style="margin-bottom: 1.5rem; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">
+                                <i class="fa-solid fa-key"></i> UPDATE SYSTEM ACCESS KEY
+                            </p>
                             <div class="form-group">
                                 <label>CURRENT ACCESS KEY</label>
                                 <input type="password" id="current-pass" placeholder="CONFIRM CURRENT KEY" required>
                             </div>
                             <div class="form-group">
                                 <label>NEW ACCESS KEY</label>
-                                <input type="password" id="new-pass" placeholder="MIN 8 CHARACTERS" required minlength="8">
+                                <input type="password" id="new-pass" placeholder="MIN 8 CHARACTERS" required
+                                    minlength="8">
                             </div>
                             <button type="submit" class="btn btn-primary btn-full">EXECUTE ENCRYPTION UPDATE</button>
-                            <p id="security-update-msg" style="display: none; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;"></p>
+                            <p id="security-update-msg"
+                                style="display: none; font-size: 0.7rem; margin-top: 1rem; text-align: center; font-weight: 700;">
+                            </p>
                         </form>
                     </div>
                 </div>
@@ -577,7 +673,10 @@
                 <div id="admin-logs" class="admin-tab">
                     <div class="admin-header">
                         <h2>ACTIVITY <span class="accent">LOGS</span></h2>
-                        <button class="btn btn-mini" style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);" onclick="promptDeleteAllLogs()"><i class="fa-solid fa-dumpster-fire"></i> DELETE ALL LOGS</button>
+                        <button class="btn btn-mini"
+                            style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);"
+                            onclick="promptDeleteAllLogs()"><i class="fa-solid fa-dumpster-fire"></i> DELETE ALL
+                            LOGS</button>
                     </div>
                     <div class="admin-table-wrapper">
                         <table class="admin-table">
@@ -601,7 +700,8 @@
                 <div id="admin-trash" class="admin-tab">
                     <div class="admin-header">
                         <h2>SYSTEM <span class="accent">RECOVERY</span></h2>
-                        <p class="admin-note"><i class="fa-solid fa-clock-rotate-left"></i> DELETED GEAR IS STORED HERE FOR 30 DAYS BEFORE PERMANENT WIPEOUT.</p>
+                        <p class="admin-note"><i class="fa-solid fa-clock-rotate-left"></i> DELETED GEAR IS STORED HERE
+                            FOR 30 DAYS BEFORE PERMANENT WIPEOUT.</p>
                     </div>
                     <div class="admin-table-wrapper">
                         <table class="admin-table">
@@ -640,9 +740,43 @@
                 <button type="button" class="btn btn-primary btn-full" id="mobile-edit-btn">
                     <i class="fa-solid fa-pen"></i> EDIT GEAR
                 </button>
-                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-btn" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-btn"
+                    style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
                     <i class="fa-solid fa-trash-can"></i> MOVE TO TRASH
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Detail Modal -->
+    <div class="modal-overlay" id="category-detail-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-layer-group"></i></div>
+                <h2 class="modal-title">CATEGORY <span class="accent">DETAILS</span></h2>
+                <p id="category-detail-meta" style="opacity: 0.7; margin-top: 0.75rem;"></p>
+            </div>
+            <div id="category-detail-products" style="display: grid; gap: 1rem; max-height: 60vh; overflow-y: auto;">
+                <p style="opacity: 0.6; padding: 2rem; text-align: center;">SELECT A CATEGORY TO VIEW ITS PRODUCTS.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Category Confirmation Modal -->
+    <div class="modal-overlay" id="delete-category-modal">
+        <div class="modal-content modal-compact">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <div class="login-icon" style="color: #ff4d4d;"><i class="fa-solid fa-trash-can"></i></div>
+                <h2 class="modal-title">DELETE <span class="accent">CATEGORY?</span></h2>
+                <p id="delete-category-message" style="opacity: 0.7; margin-top: 0.75rem;">This action will remove the
+                    category only if no products are assigned.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-category-btn"
+                    style="background: #ff4d4d; border-color: #ff4d4d;">DELETE CATEGORY</button>
             </div>
         </div>
     </div>
@@ -660,7 +794,8 @@
                 <button type="button" class="btn btn-primary btn-full" id="mobile-restore-btn">
                     <i class="fa-solid fa-rotate-left"></i> RESTORE GEAR
                 </button>
-                <button type="button" class="btn btn-outline btn-full" id="mobile-permanent-delete-btn" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                <button type="button" class="btn btn-outline btn-full" id="mobile-permanent-delete-btn"
+                    style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
                     <i class="fa-solid fa-fire"></i> ERASE PERMANENTLY
                 </button>
             </div>
@@ -677,13 +812,16 @@
                 <p id="m-reviewer-name" style="font-weight: 700; color: #fff; margin-top: 5px;"></p>
                 <div id="m-review-stars" style="margin-top: 10px;"></div>
             </div>
-            <div id="m-review-message" style="margin-top: 1.5rem; font-size: 0.8rem; line-height: 1.6; opacity: 0.8; text-align: left; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); max-height: 150px; overflow-y: auto;"></div>
-            
+            <div id="m-review-message"
+                style="margin-top: 1.5rem; font-size: 0.8rem; line-height: 1.6; opacity: 0.8; text-align: left; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); max-height: 150px; overflow-y: auto;">
+            </div>
+
             <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem;">
                 <button type="button" class="btn btn-primary btn-full" id="mobile-best-review-btn">
                     <i class="fa-solid fa-award"></i> TOGGLE BEST REVIEW
                 </button>
-                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-review-btn" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                <button type="button" class="btn btn-outline btn-full" id="mobile-delete-review-btn"
+                    style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
                     <i class="fa-solid fa-trash-can"></i> PURGE REVIEW
                 </button>
             </div>
@@ -700,7 +838,8 @@
             </div>
             <div style="display: flex; gap: 10px; margin-top: 2rem;">
                 <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
-                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-btn" style="background: #ff4d4d; border-color: #ff4d4d;">DELETE</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-btn"
+                    style="background: #ff4d4d; border-color: #ff4d4d;">DELETE</button>
             </div>
         </div>
     </div>
@@ -709,13 +848,16 @@
     <div class="modal-overlay" id="wipe-modal">
         <div class="modal-content modal-compact">
             <div class="modal-header">
-                <div class="login-icon" style="color: #ff0000; filter: drop-shadow(0 0 10px #ff0000);"><i class="fa-solid fa-skull"></i></div>
+                <div class="login-icon" style="color: #ff0000; filter: drop-shadow(0 0 10px #ff0000);"><i
+                        class="fa-solid fa-skull"></i></div>
                 <h2 class="modal-title">PERMANENT <span class="accent">WIPEOUT?</span></h2>
                 <p>This will erase the product from the mainframe permanently. This action is irreversible.</p>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 2rem;">
                 <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
-                <button type="button" class="btn btn-primary btn-full" id="confirm-wipe-btn" style="background: #ff0000; border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.4);">WIPE FOREVER</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-wipe-btn"
+                    style="background: #ff0000; border-color: #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.4);">WIPE
+                    FOREVER</button>
             </div>
         </div>
     </div>
@@ -724,13 +866,16 @@
     <div class="modal-overlay" id="delete-all-logs-modal">
         <div class="modal-content modal-compact">
             <div class="modal-header">
-                <div class="login-icon" style="color: #ff4d4d; filter: drop-shadow(0 0 10px #ff4d4d);"><i class="fa-solid fa-dumpster-fire"></i></div>
+                <div class="login-icon" style="color: #ff4d4d; filter: drop-shadow(0 0 10px #ff4d4d);"><i
+                        class="fa-solid fa-dumpster-fire"></i></div>
                 <h2 class="modal-title">PURGE <span class="accent">HISTORY?</span></h2>
                 <p>This will permanently erase all system activity logs. This action cannot be undone.</p>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 2rem;">
                 <button type="button" class="btn btn-outline btn-full modal-close-btn">CANCEL</button>
-                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-all-logs-btn" style="background: #ff4d4d; border-color: #ff4d4d; box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);">CONFIRM PURGE</button>
+                <button type="button" class="btn btn-primary btn-full" id="confirm-delete-all-logs-btn"
+                    style="background: #ff4d4d; border-color: #ff4d4d; box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);">CONFIRM
+                    PURGE</button>
             </div>
         </div>
     </div>
@@ -742,59 +887,78 @@
             <div class="modal-header">
                 <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-receipt"></i></div>
                 <h2 class="modal-title">ORDER <span class="accent">DETAILS</span></h2>
-                <p id="dt-order-id" style="font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.5; margin-top: 5px;"></p>
+                <p id="dt-order-id"
+                    style="font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.5; margin-top: 5px;"></p>
             </div>
-            
-            <div class="order-detail-body" style="margin-top: 2rem; max-height: 60vh; overflow-y: auto; padding-right: 10px;">
-                <div class="detail-section" style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
-                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">CUSTOMER DATA</h3>
+
+            <div class="order-detail-body"
+                style="margin-top: 2rem; max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                <div class="detail-section"
+                    style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">
+                        CUSTOMER DATA</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
-                            <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">NAME</label>
+                            <label
+                                style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">NAME</label>
                             <p id="dt-customer-name" style="font-weight: 700;"></p>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">EMAIL</label>
+                            <label
+                                style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">EMAIL</label>
                             <p id="dt-customer-email" style="font-size: 0.8rem;"></p>
                         </div>
                     </div>
                     <div style="margin-top: 1rem;">
-                        <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">SHIPPING ADDRESS</label>
+                        <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">SHIPPING
+                            ADDRESS</label>
                         <p id="dt-customer-address" style="font-size: 0.8rem; line-height: 1.4;"></p>
                     </div>
                 </div>
 
-                <div class="detail-section" style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
-                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">ORDERED GEAR</h3>
+                <div class="detail-section"
+                    style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">
+                        ORDERED GEAR</h3>
                     <div id="dt-items-list" style="display: flex; flex-direction: column; gap: 10px;">
                         <!-- Items will be injected here -->
                     </div>
                 </div>
 
-                <div class="detail-section" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+                <div class="detail-section"
+                    style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
                     <div>
-                        <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">STATUS & DATE</h3>
+                        <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">
+                            STATUS & DATE</h3>
                         <div style="display: flex; gap: 1rem; align-items: center;">
                             <div id="dt-order-status" class="status-badge">PENDING</div>
                             <p id="dt-order-date" style="font-size: 0.7rem; opacity: 0.5;"></p>
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">TOTAL COARSE</label>
-                        <p id="dt-total-price" style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-heading); color: var(--accent);"></p>
+                        <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">TOTAL
+                            COARSE</label>
+                        <p id="dt-total-price"
+                            style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-heading); color: var(--accent);">
+                        </p>
                     </div>
                 </div>
 
                 <!-- Mobile Quick Actions -->
-                <div id="dt-mobile-actions" style="display: none; flex-direction: column; gap: 12px; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); pt: 1.5rem;">
-                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: var(--accent);">QUICK COMMANDS</h3>
-                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="COMPLETED" style="background: #00ff8033; color: #00ff80; border-color: #00ff8033;">
+                <div id="dt-mobile-actions"
+                    style="display: none; flex-direction: column; gap: 12px; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); pt: 1.5rem;">
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: var(--accent);">
+                        QUICK COMMANDS</h3>
+                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="COMPLETED"
+                        style="background: #00ff8033; color: #00ff80; border-color: #00ff8033;">
                         <i class="fa-solid fa-check"></i> COMPLETED
                     </button>
-                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="PROCESSING" style="background: #00d4ff33; color: #00d4ff; border-color: #00d4ff33;">
+                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="PROCESSING"
+                        style="background: #00d4ff33; color: #00d4ff; border-color: #00d4ff33;">
                         <i class="fa-solid fa-clock"></i> PROCESSING
                     </button>
-                    <button type="button" class="btn btn-outline btn-full m-dt-btn" data-status="CANCELLED" style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                    <button type="button" class="btn btn-outline btn-full m-dt-btn" data-status="CANCELLED"
+                        style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
                         <i class="fa-solid fa-ban"></i> CANCEL
                     </button>
                 </div>
@@ -839,31 +1003,47 @@
                 </div>
                 <div class="form-group">
                     <label>IMAGE SOURCE</label>
-                    <div class="image-toggle-container" style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                        <button type="button" class="btn btn-mini product-img-mode active" data-mode="url" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">SOURCE URL</button>
-                        <button type="button" class="btn btn-mini product-img-mode" data-mode="upload" style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">LOCAL UPLOAD</button>
+                    <div class="image-toggle-container"
+                        style="display: flex; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <button type="button" class="btn btn-mini product-img-mode active" data-mode="url"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">SOURCE
+                            URL</button>
+                        <button type="button" class="btn btn-mini product-img-mode" data-mode="upload"
+                            style="flex: 1; font-size: 0.6rem; border: none; border-radius: 6px; padding: 8px;">LOCAL
+                            UPLOAD</button>
                     </div>
-                    
+
                     <div id="p-img-url-wrapper">
                         <input type="url" id="p-img" placeholder="HTTPS://GEAR-IMAGE.JPG" style="margin-bottom: 0;">
                     </div>
-                    
+
                     <div id="p-img-upload-wrapper" style="display: none;">
-                        <div class="upload-dropzone" id="image-dropzone" style="border: 2px border-dashed rgba(255,255,255,0.1); border-radius: 8px; padding: 25px 15px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; background: rgba(255,255,255,0.02);">
-                            <input type="file" id="p-img-file" accept="image/*" style="opacity: 0; position: absolute; inset: 0; cursor: pointer; width: 100%; height: 100%;">
+                        <div class="upload-dropzone" id="image-dropzone"
+                            style="border: 2px border-dashed rgba(255,255,255,0.1); border-radius: 8px; padding: 25px 15px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; background: rgba(255,255,255,0.02);">
+                            <input type="file" id="p-img-file" accept="image/*"
+                                style="opacity: 0; position: absolute; inset: 0; cursor: pointer; width: 100%; height: 100%;">
                             <div style="pointer-events: none;">
-                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.4rem; color: var(--accent); margin-bottom: 10px; opacity: 0.8;"></i>
-                                <p style="font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">DRAG GEAR OR <span class="accent">BROWSE</span></p>
+                                <i class="fa-solid fa-cloud-arrow-up"
+                                    style="font-size: 1.4rem; color: var(--accent); margin-bottom: 10px; opacity: 0.8;"></i>
+                                <p
+                                    style="font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">
+                                    DRAG GEAR OR <span class="accent">BROWSE</span></p>
                             </div>
                         </div>
                     </div>
-                    
-                    <div id="p-img-preview-container" style="margin-top: 15px; display: none; text-align: center; border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2);">
-                        <p style="font-size: 0.6rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase;">PREVIEW</p>
-                        <div style="width: 100%; max-width: 150px; height: auto; max-height: 150px; margin: 0 auto 10px; position: relative; border-radius: 6px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 0 15px var(--accent-glow);">
-                            <img id="p-img-preview" src="" alt="PREVIEW" style="width: 100%; height: auto; max-height: 100%; object-fit: contain;">
+
+                    <div id="p-img-preview-container"
+                        style="margin-top: 15px; display: none; text-align: center; border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2);">
+                        <p style="font-size: 0.6rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase;">
+                            PREVIEW</p>
+                        <div
+                            style="width: 100%; max-width: 150px; height: auto; max-height: 150px; margin: 0 auto 10px; position: relative; border-radius: 6px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 0 15px var(--accent-glow);">
+                            <img id="p-img-preview" src="" alt="PREVIEW"
+                                style="width: 100%; height: auto; max-height: 100%; object-fit: contain;">
                         </div>
-                        <button type="button" id="remove-preview" class="btn btn-mini" style="margin-top: 5px; color: #ff4d4d; border-color: rgba(255,77,77,0.2); font-size: 0.55rem;">REMOVE IMAGE</button>
+                        <button type="button" id="remove-preview" class="btn btn-mini"
+                            style="margin-top: 5px; color: #ff4d4d; border-color: rgba(255,77,77,0.2); font-size: 0.55rem;">REMOVE
+                            IMAGE</button>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px;">
@@ -879,15 +1059,18 @@
         <div class="about-bg"></div>
         <div class="container about-content">
             <h2 class="about-title scale-up">MORE THAN A BRAND.<br><span class="accent">A MOVEMENT.</span></h2>
-            <p class="about-text">Born in the heart of urban Algiers, 3DRIP merges avant-garde technology with raw street culture. We don't just follow trends—we redefine them for the next generation.</p>
+            <p class="about-text">Born in the heart of urban Algiers, 3DRIP merges avant-garde technology with raw
+                street culture. We don't just follow trends—we redefine them for the next generation.</p>
             <div class="about-stats">
                 <div class="stat">
-                    <i class="fa-solid fa-users-rays" style="color: var(--accent); font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
+                    <i class="fa-solid fa-users-rays"
+                        style="color: var(--accent); font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
                     <span class="stat-num">100K+</span>
                     <span class="stat-label">COMMUNITY</span>
                 </div>
                 <div class="stat">
-                    <i class="fa-solid fa-star" style="color: #ffcc00; font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
+                    <i class="fa-solid fa-star"
+                        style="color: #ffcc00; font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
                     <span class="stat-num">4.9/5</span>
                     <span class="stat-label">RATING</span>
                 </div>
@@ -930,12 +1113,15 @@
         <div class="container footer-grid">
             <div class="footer-brand">
                 <div class="footer-logo">
-                    <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png" alt="3DRIP" class="logo-img" style="max-height: 90px;">
+                    <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png"
+                        alt="3DRIP" class="logo-img" style="max-height: 90px;">
                 </div>
                 <p>Pioneering the future of Algerian streetwear. Built for those who refuse to stay in the shadows.</p>
                 <div class="social-links">
-                    <a href="https://instagram.com/three_drip" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="https://tiktok.com/@three_drip" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="https://instagram.com/three_drip" target="_blank" rel="noopener noreferrer"
+                        aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://tiktok.com/@three_drip" target="_blank" rel="noopener noreferrer"
+                        aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
                     <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
                 </div>
             </div>
@@ -964,4 +1150,5 @@
     <!-- Script -->
     <script type="module" src="script.js"></script>
 </body>
+
 </html>
