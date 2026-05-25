@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3DRIP | LUXURY STREETWEAR 2026</title>
+    <title>3DRIP SHOP | Luxury Cyberpunk Streetwear</title>
     <meta name="loaderio" content="loaderio-1cf841f9393eb5eb901afaacd7b43506" />
     <!-- Fonts -->
     <link
@@ -30,7 +30,7 @@
         <div class="loading-bar-container"
             style="width: 200px; height: 1px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden;">
             <div class="loading-bar-progress"
-                style="position: absolute; top: 0; left: 0; height: 100%; background: var(--accent, #8a2be2); width: 30%; animation: loading-slide 2s infinite ease-in-out;">
+                style="position: absolute; top: 0; left: 0; height: 100%; background: var(--accent, #a855f7); width: 30%; animation: loading-slide 2s infinite ease-in-out;">
             </div>
         </div>
         <p
@@ -44,7 +44,7 @@
     <!-- Navigation -->
     <nav class="nav">
         <div class="container nav-container">
-            <a href="#home" class="nav-logo">
+            <a href="/" class="nav-logo">
                 <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png"
                     alt="3DRIP" class="logo-img">
             </a>
@@ -55,6 +55,17 @@
                 <li><a href="#reviews">REVIEWS</a></li>
             </ul>
             <div class="nav-actions">
+                <!-- Expandable Search Bar -->
+                <div class="navbar-search">
+                    <button class="search-icon-btn" aria-label="Search" aria-expanded="false">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <div class="search-input-wrapper">
+                        <input type="text" class="navbar-search-input" placeholder="Search products..."
+                            aria-label="Search products" autocomplete="off">
+                    </div>
+                </div>
+
                 <a href="https://instagram.com/three_drip" target="_blank" rel="noopener noreferrer" class="icon-btn"
                     aria-label="Instagram">
                     <i class="fa-brands fa-instagram"></i>
@@ -63,12 +74,18 @@
                     aria-label="TikTok">
                     <i class="fa-brands fa-tiktok"></i>
                 </a>
-                <button class="icon-btn search-trigger" aria-label="Search">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
+                <a href="#wishlist" class="icon-btn" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart"></i>
+                    <span class="wishlist-count" id="wishlist-badge">0</span>
+                </a>
                 <button class="icon-btn cart-trigger" aria-label="Cart">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span class="cart-count">0</span>
+                </button>
+                <!-- Theme Toggle Button -->
+                <button class="theme-toggle icon-btn" id="theme-toggle" aria-label="Toggle theme">
+                    <i class="fa-solid fa-sun theme-icon-sun"></i>
+                    <i class="fa-solid fa-moon theme-icon-moon"></i>
                 </button>
             </div>
             <div class="mobile-toggle" id="mobile-toggle">
@@ -79,18 +96,33 @@
         </div>
     </nav>
 
-    <!-- Mobile Menu Overlay -->
+    <!-- Premium Mobile Menu Drawer -->
     <div class="mobile-menu" id="mobile-menu">
-        <button class="menu-close" id="menu-close">&times;</button>
+        <div class="mobile-menu-glass"></div>
+        <div class="mobile-menu-header">
+            <img src="https://res.cloudinary.com/dyqf4ck8h/image/upload/v1778931272/dfwkmhjqjoomn6vdbsrr.png" alt="3DRIP" class="mobile-menu-logo">
+            <button class="menu-close" id="menu-close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
         <div class="mobile-menu-content">
             <ul class="mobile-nav-links">
-                <li><a href="#home">HOME</a></li>
-                <li><a href="#shop">SHOP</a></li>
-                <li><a href="#about">ABOUT</a></li>
-                <li><a href="#reviews">REVIEWS</a></li>
-                <li><a href="#cart" class="mobile-cart-link"><i class="fa-solid fa-bag-shopping"></i> CART (<span
-                            class="cart-count-mobile">0</span>)</a></li>
+                <li><a href="#home" class="mobile-nav-link"><i class="fa-solid fa-house"></i> HOME</a></li>
+                <li><a href="#shop" class="mobile-nav-link"><i class="fa-solid fa-store"></i> SHOP</a></li>
+                <li><a href="#wishlist" class="mobile-nav-link"><i class="fa-regular fa-heart"></i> WISHLIST</a></li>
+                <li><a href="#about" class="mobile-nav-link"><i class="fa-solid fa-info-circle"></i> ABOUT</a></li>
+                <li><a href="#reviews" class="mobile-nav-link"><i class="fa-solid fa-star"></i> REVIEWS</a></li>
             </ul>
+            <div class="mobile-menu-footer">
+                <button class="mobile-theme-btn" id="mobile-theme-btn">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                    <span>SWITCH THEME</span>
+                </button>
+            </div>
+        </div>
+        <div class="mobile-menu-brand">
+            <span>3DRIP &copy; 2026</span>
+            <span>DESIGNED FOR THE FUTURE</span>
         </div>
     </div>
 
@@ -145,60 +177,7 @@
                 <p class="section-desc">Limited pieces from our latest drop. Select entries only.</p>
             </div>
             <div class="product-grid">
-                <!-- Product 1 -->
-                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900"
-                    data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600"
-                            alt="Futuristic Hoodie">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">HOODIE</span>
-                            <span class="price">8,900 DZD</span>
-                        </div>
-                        <h3 class="product-name">VIOLET VOID OVERSIZED</h3>
-                    </div>
-                </div>
-                <!-- Product 2 -->
-                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500"
-                    data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600"
-                            alt="Cyber Tee">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">T-SHIRT</span>
-                            <span class="price">4,500 DZD</span>
-                        </div>
-                        <h3 class="product-name">CYBERPUNK GRAPHIC TEE</h3>
-                    </div>
-                </div>
-                <!-- Product 3 -->
-                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200"
-                    data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600"
-                            alt="Cargo Pants">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">BOTTOMS</span>
-                            <span class="price">7,200 DZD</span>
-                        </div>
-                        <h3 class="product-name">NEON TRACK CARGOS</h3>
-                    </div>
-                </div>
+                <!-- Products rendered dynamically by renderStore() -->
             </div>
             <div style="text-align: center; margin-top: 4rem;">
                 <a href="#shop" class="btn btn-outline">VIEW ALL DROPS</a>
@@ -206,122 +185,196 @@
         </div>
     </section>
 
+    <!-- Product View Page -->
+    <section id="product-view" class="product-view-section section view">
+        <div class="container">
+            <div class="product-view-layout" id="product-view-layout">
+                <!-- Dynamically rendered product detail -->
+            </div>
+        </div>
+    </section>
+
     <!-- Shop / Collections -->
     <section id="shop" class="collection section view">
-        <div class="container">
-            <div class="section-header">
+        <div class="shop-layout">
+            <div class="section-header-full">
                 <h2 class="section-title">FULL <span class="accent">CATALOG</span></h2>
                 <p class="section-desc">Handcrafted streetwear essentials for the modern pioneer.</p>
             </div>
-            <div class="product-filter-bar" id="product-filter-bar" aria-label="Product category filter"></div>
-            <div class="product-grid" id="main-product-grid">
-                <!-- Products will be dynamically generated or stay static -->
-                <!-- Product 1 -->
-                <div class="product-card" data-id="1" data-name="VIOLET VOID OVERSIZED" data-price="8900"
-                    data-img="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=600"
-                            alt="Futuristic Hoodie">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+
+            <!-- Shop Main Layout: Sidebar + Content -->
+            <div class="shop-main-grid">
+                <!-- LEFT SIDEBAR - Filter Panel -->
+                <aside class="shop-sidebar" id="shop-sidebar">
+                    <div class="sidebar-toggle-wrapper">
+                        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+                            <i class="fa-solid fa-sliders"></i> FILTERS
+                        </button>
+                    </div>
+                    <div class="product-filter-bar" id="product-filter-bar" aria-label="Product category filter">
+                        <div class="filter-panel">
+                            <div class="filter-panel-header">
+                                <div>
+                                    <span class="filter-panel-tag">FILTERS</span>
+                                </div>
+                                <button type="button" class="sidebar-close-btn"
+                                    aria-label="Close filters">&times;</button>
+                            </div>
+                            <div class="filter-section">
+                                <h4>Categories</h4>
+                                <div class="filter-items"></div>
+                            </div>
+                            <!-- PRICE RANGE SECTION -->
+                            <div class="filter-section">
+                                <h4>PRICE RANGE</h4>
+                                <div class="price-slider-container">
+                                    <input type="range" id="price-slider" class="price-slider" min="0" max="50000"
+                                        value="50000">
+                                    <div class="price-display">
+                                        <span class="price-min">0 DA</span>
+                                        <span class="price-max"><span id="price-value">50,000</span>+ DA</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- COLOR SECTION -->
+                            <div class="filter-section">
+                                <h4>COLOR</h4>
+                                <div class="color-swatches">
+                                    <button class="color-swatch" data-color="#000000" style="background-color: #000000;"
+                                        title="Black"></button>
+                                    <button class="color-swatch" data-color="#1a1a2e" style="background-color: #1a1a2e;"
+                                        title="Dark Blue"></button>
+                                    <button class="color-swatch" data-color="#a855f7" style="background-color: #a855f7;"
+                                        title="Purple"></button>
+                                    <button class="color-swatch" data-color="#ec4899" style="background-color: #ec4899;"
+                                        title="Pink"></button>
+                                    <button class="color-swatch" data-color="#06b6d4" style="background-color: #06b6d4;"
+                                        title="Cyan"></button>
+                                    <button class="color-swatch" data-color="#ffffff"
+                                        style="background-color: #ffffff; border: 1px solid rgba(255,255,255,0.3);"
+                                        title="White"></button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">HOODIE</span>
-                            <span class="price">8,900 DZD</span>
+                </aside>
+
+                <!-- RIGHT CONTENT AREA -->
+                <div class="shop-content-area">
+                    <!-- TOP CONTROLS BAR -->
+                    <div class="shop-controls" id="shop-controls">
+                        <!-- MOBILE FILTER/SORT BUTTONS (Hidden on desktop) -->
+                        <div class="mobile-controls" id="mobile-controls">
+                            <button type="button" class="mobile-control-btn mobile-filter-btn" id="mobile-filter-btn" aria-label="Open filters">
+                                <i class="fa-solid fa-sliders"></i> FILTER
+                            </button>
+                            <button type="button" class="mobile-control-btn mobile-sort-btn" id="mobile-sort-btn" aria-label="Open sort options">
+                                <i class="fa-solid fa-arrow-up-down"></i> SORT
+                            </button>
                         </div>
-                        <h3 class="product-name">VIOLET VOID OVERSIZED</h3>
+                        <div class="shop-controls-left">
+                            <!-- PREMIUM SEARCH BAR -->
+                            <div class="premium-search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="shop-search-input" class="search-input"
+                                    placeholder="Search products..." autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="shop-controls-right">
+                            <select id="sort-select" class="shop-sort-select" aria-label="Sort products">
+                                <option value="featured">Featured</option>
+                                <option value="newest">Newest</option>
+                                <option value="price-low">Price: Low to High</option>
+                                <option value="price-high">Price: High to Low</option>
+                                <option value="popularity">Most Popular</option>
+                            </select>
+
+                            <div class="view-toggle" role="tablist" aria-label="View options">
+                                <button type="button" class="view-btn grid-view active" data-view="grid"
+                                    aria-pressed="true" title="Grid view"><i class="fa-solid fa-grip"></i></button>
+                                <button type="button" class="view-btn list-view" data-view="list" aria-pressed="false"
+                                    title="List view"><i class="fa-solid fa-list"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCTS GRID -->
+                    <div class="product-grid" id="products-grid">
+                        <!-- Products rendered dynamically by renderStore() -->
                     </div>
                 </div>
-                <!-- Product 2 -->
-                <div class="product-card" data-id="2" data-name="CYBERPUNK GRAPHIC TEE" data-price="4500"
-                    data-img="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=600"
-                            alt="Cyber Tee">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
+            </div>
+        </div>
+
+        <!-- MOBILE FILTER BOTTOM SHEET -->
+        <div class="mobile-bottom-sheet" id="mobile-filter-sheet" aria-hidden="true" aria-label="Filter options">
+            <div class="bottom-sheet-overlay" id="filter-sheet-overlay"></div>
+            <div class="bottom-sheet-content">
+                <div class="bottom-sheet-header">
+                    <h3>FILTERS</h3>
+                    <button type="button" class="bottom-sheet-close" id="close-filter-sheet" aria-label="Close filters">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="bottom-sheet-body">
+                    <!-- CATEGORIES -->
+                    <div class="mobile-filter-section">
+                        <h4>CATEGORIES</h4>
+                        <div class="mobile-filter-items" id="mobile-categories-list">
+                            <!-- Categories rendered dynamically -->
                         </div>
                     </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">T-SHIRT</span>
-                            <span class="price">4,500 DZD</span>
+                    <!-- PRICE RANGE -->
+                    <div class="mobile-filter-section">
+                        <h4>PRICE RANGE</h4>
+                        <div class="mobile-price-slider-container">
+                            <input type="range" id="mobile-price-slider" class="mobile-price-slider" min="0" max="50000" value="50000">
+                            <div class="mobile-price-display">
+                                <span class="mobile-price-min">0 DA</span>
+                                <span class="mobile-price-max"><span id="mobile-price-value">50,000</span>+ DA</span>
+                            </div>
                         </div>
-                        <h3 class="product-name">CYBERPUNK GRAPHIC TEE</h3>
                     </div>
                 </div>
-                <!-- Product 3 -->
-                <div class="product-card" data-id="3" data-name="NEON TRACK CARGOS" data-price="7200"
-                    data-img="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=600"
-                            alt="Cargo Pants">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">BOTTOMS</span>
-                            <span class="price">7,200 DZD</span>
-                        </div>
-                        <h3 class="product-name">NEON TRACK CARGOS</h3>
-                    </div>
+                <div class="bottom-sheet-footer">
+                    <button type="button" class="btn btn-primary btn-full" id="apply-mobile-filters">APPLY FILTERS</button>
                 </div>
-                <!-- Product 4 -->
-                <div class="product-card" data-id="4" data-name="URBAN EXPLORER SHELL" data-price="12500"
-                    data-img="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=600"
-                            alt="Tech Jacket">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">OUTERWEAR</span>
-                            <span class="price">12,500 DZD</span>
-                        </div>
-                        <h3 class="product-name">URBAN EXPLORER SHELL</h3>
-                    </div>
+            </div>
+        </div>
+
+        <!-- MOBILE SORT BOTTOM SHEET -->
+        <div class="mobile-bottom-sheet" id="mobile-sort-sheet" aria-hidden="true" aria-label="Sort options">
+            <div class="bottom-sheet-overlay" id="sort-sheet-overlay"></div>
+            <div class="bottom-sheet-content">
+                <div class="bottom-sheet-header">
+                    <h3>SORT BY</h3>
+                    <button type="button" class="bottom-sheet-close" id="close-sort-sheet" aria-label="Close sort options">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
                 </div>
-                <!-- Product 5 (New) -->
-                <div class="product-card" data-id="5" data-name="NIGHTHAWK STRIKE CAP" data-price="3200"
-                    data-img="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=600"
-                            alt="Street Cap">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">ACCESSORIES</span>
-                            <span class="price">3,200 DZD</span>
-                        </div>
-                        <h3 class="product-name">NIGHTHAWK STRIKE CAP</h3>
-                    </div>
-                </div>
-                <!-- Product 6 (New) -->
-                <div class="product-card" data-id="6" data-name="FUTURA MESH SNEAKERS" data-price="18900"
-                    data-img="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600">
-                    <div class="product-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=600"
-                            alt="Futuristic Sneakers">
-                        <div class="product-overlay">
-                            <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-meta">
-                            <span class="label">FOOTWEAR</span>
-                            <span class="price">18,900 DZD</span>
-                        </div>
-                        <h3 class="product-name">FUTURA MESH SNEAKERS</h3>
+                <div class="bottom-sheet-body">
+                    <div class="mobile-sort-options">
+                        <button type="button" class="mobile-sort-option" data-sort="featured">
+                            <span>Featured</span>
+                            <i class="fa-solid fa-check" style="display: none;"></i>
+                        </button>
+                        <button type="button" class="mobile-sort-option" data-sort="newest">
+                            <span>Newest</span>
+                            <i class="fa-solid fa-check" style="display: none;"></i>
+                        </button>
+                        <button type="button" class="mobile-sort-option" data-sort="price-low">
+                            <span>Price: Low to High</span>
+                            <i class="fa-solid fa-check" style="display: none;"></i>
+                        </button>
+                        <button type="button" class="mobile-sort-option" data-sort="price-high">
+                            <span>Price: High to Low</span>
+                            <i class="fa-solid fa-check" style="display: none;"></i>
+                        </button>
+                        <button type="button" class="mobile-sort-option" data-sort="popularity">
+                            <span>Most Popular</span>
+                            <i class="fa-solid fa-check" style="display: none;"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -367,20 +420,43 @@
                 <h2 class="modal-title">SECURE <span class="accent">CHECKOUT</span></h2>
                 <p>Complete your deployment in the streets.</p>
             </div>
+            <!-- Order Summary (shown for Buy Now) -->
+            <div id="checkout-order-summary" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                <h3 style="font-size: 0.8rem; letter-spacing: 2px; color: var(--accent); margin-bottom: 1rem;">ORDER SUMMARY</h3>
+                <div id="checkout-summary-items"></div>
+                <div style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <span style="font-weight: 700;">TOTAL</span>
+                    <span id="checkout-summary-total" style="font-weight: 700; color: var(--accent);">0 DZD</span>
+                </div>
+            </div>
             <form class="checkout-form" id="order-form">
+                <input type="hidden" id="checkout-type" value="cart">
+                <input type="hidden" id="checkout-product-id" value="">
                 <div class="form-group">
                     <label>FULL NAME</label>
-                    <input type="text" placeholder="ENTER YOUR NAME" required>
+                    <input type="text" id="checkout-name" placeholder="ENTER YOUR NAME" required>
                 </div>
                 <div class="form-group">
-                    <label>EMAIL ADDRESS</label>
-                    <input type="email" placeholder="ENTER YOUR EMAIL" required>
+                    <label>PHONE NUMBER</label>
+                    <input type="tel" id="checkout-phone" placeholder="05XX XX XX XX" required>
                 </div>
                 <div class="form-group">
-                    <label>SHIPPING ADDRESS</label>
-                    <textarea placeholder="FULL ADDRESS (CITY, WILAYA)" required></textarea>
+                    <label>WILAYA / STATE</label>
+                    <input type="text" id="checkout-wilaya" placeholder="E.G. ALGER, ORAN, CONSTANTINE" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">CONFIRM ORDER</button>
+                <div class="form-group">
+                    <label>CITY / COMMUNE</label>
+                    <input type="text" id="checkout-city" placeholder="E.G. BAB EZZOUAR" required>
+                </div>
+                <div class="form-group">
+                    <label>ADDRESS</label>
+                    <textarea id="checkout-address" placeholder="STREET, BUILDING, APARTMENT NUMBER" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>NOTES (OPTIONAL)</label>
+                    <textarea id="checkout-notes" placeholder="SPECIAL INSTRUCTIONS FOR DELIVERY"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="checkout-submit-btn">CONFIRM ORDER</button>
             </form>
             <div class="order-success" id="order-success">
                 <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
@@ -549,27 +625,21 @@
                     </div>
                 </div>
 
-                <!-- Orders Tab -->
+                <!-- Orders Tab - REDESIGNED: Compact Expandable -->
                 <div id="admin-orders" class="admin-tab">
                     <div class="admin-header">
                         <h2>ORDER <span class="accent">LOGS</span></h2>
+                        <span class="orders-count-badge" id="orders-count-badge">0 ORDERS</span>
                     </div>
-                    <div class="admin-table-wrapper">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>CUSTOMER</th>
-                                    <th>ADDRESS</th>
-                                    <th class="desktop-only">GEAR</th>
-                                    <th class="desktop-only">TOTAL</th>
-                                    <th class="desktop-only">STATUS</th>
-                                    <th class="desktop-only">DATE</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-order-list">
-                                <!-- Dynamic Rows -->
-                            </tbody>
-                        </table>
+                    <!-- Compact Orders Container -->
+                    <div class="orders-compact-container" id="orders-compact-container">
+                        <!-- Dynamic compact order cards rendered here -->
+                    </div>
+                    <!-- Empty State -->
+                    <div class="orders-empty-state" id="orders-empty-state">
+                        <i class="fa-solid fa-receipt"></i>
+                        <p>NO ORDERS RECORDED.</p>
+                        <span>Orders will appear here once customers check out.</span>
                     </div>
                 </div>
 
@@ -881,9 +951,9 @@
         </div>
     </div>
 
-    <!-- Order Detail Modal -->
+    <!-- Order Detail Side Drawer -->
     <div class="modal-overlay" id="order-detail-modal">
-        <div class="modal-content">
+        <div class="modal-content modal-side-drawer" id="order-detail-drawer">
             <button class="modal-close" id="order-detail-close">&times;</button>
             <div class="modal-header">
                 <div class="login-icon" style="color: var(--accent);"><i class="fa-solid fa-receipt"></i></div>
@@ -906,14 +976,30 @@
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">EMAIL</label>
-                            <p id="dt-customer-email" style="font-size: 0.8rem;"></p>
+                                style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">PHONE</label>
+                            <p id="dt-customer-phone" style="font-size: 0.8rem;"></p>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">WILAYA/CITY</label>
+                            <p id="dt-customer-location" style="font-weight: 700;"></p>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">STATUS</label>
+                            <div id="dt-order-status" class="status-badge">PENDING</div>
                         </div>
                     </div>
                     <div style="margin-top: 1rem;">
                         <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">SHIPPING
                             ADDRESS</label>
                         <p id="dt-customer-address" style="font-size: 0.8rem; line-height: 1.4;"></p>
+                    </div>
+                    <div style="margin-top: 1rem; display: none;" id="dt-notes-wrapper">
+                        <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">NOTES</label>
+                        <p id="dt-customer-notes" style="font-size: 0.8rem; font-style: italic; opacity: 0.7; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px;"></p>
                     </div>
                 </div>
 
@@ -930,11 +1016,8 @@
                     style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
                     <div>
                         <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">
-                            STATUS & DATE</h3>
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <div id="dt-order-status" class="status-badge">PENDING</div>
-                            <p id="dt-order-date" style="font-size: 0.7rem; opacity: 0.5;"></p>
-                        </div>
+                            DATE</h3>
+                        <p id="dt-order-date" style="font-size: 0.7rem; opacity: 0.5;"></p>
                     </div>
                     <div style="text-align: right;">
                         <label style="display: block; font-size: 0.6rem; opacity: 0.5; margin-bottom: 5px;">TOTAL
@@ -945,29 +1028,17 @@
                     </div>
                 </div>
 
-                <!-- Mobile Quick Actions -->
-                <div id="dt-mobile-actions"
-                    style="display: none; flex-direction: column; gap: 12px; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); pt: 1.5rem;">
-                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: var(--accent);">
-                        QUICK COMMANDS</h3>
-                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="COMPLETED"
-                        style="background: #00ff8033; color: #00ff80; border-color: #00ff8033;">
-                        <i class="fa-solid fa-check"></i> COMPLETED
-                    </button>
-                    <button type="button" class="btn btn-primary btn-full m-dt-btn" data-status="PROCESSING"
-                        style="background: #00d4ff33; color: #00d4ff; border-color: #00d4ff33;">
-                        <i class="fa-solid fa-clock"></i> PROCESSING
-                    </button>
-                    <button type="button" class="btn btn-outline btn-full m-dt-btn" data-status="CANCELLED"
-                        style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
-                        <i class="fa-solid fa-ban"></i> CANCEL
-                    </button>
-                </div>
-            </div>
-
-            <div style="margin-top: 2rem; display: flex; gap: 10px;" id="dt-footer">
-                <button type="button" class="btn btn-outline btn-full modal-close-btn">DISMISS</button>
-                <div style="display: flex; flex: 1; gap: 10px;" id="order-status-controls">
+                <!-- Actions -->
+                <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem; color: var(--accent);">ACTIONS</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;" id="order-status-controls">
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <button type="button" class="btn btn-outline btn-full" id="dt-delete-order-btn"
+                            style="color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);">
+                            <i class="fa-solid fa-trash-can"></i> DELETE ORDER
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -986,6 +1057,10 @@
                 <div class="form-group">
                     <label>PRODUCT NAME</label>
                     <input type="text" id="p-name" placeholder="E.G. NOCTURNAL HOODIE" required>
+                </div>
+                <div class="form-group">
+                    <label>DESCRIPTION</label>
+                    <textarea id="p-description" placeholder="Enter product description..." style="font-family: var(--font-body); background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: #fff; resize: vertical; min-height: 80px;" ></textarea>
                 </div>
                 <div class="form-group">
                     <label>CATEGORY</label>
@@ -1097,6 +1172,25 @@
         </div>
     </section>
 
+    <!-- Wishlist View -->
+    <section id="wishlist" class="wishlist-view section view">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">YOUR <span class="accent">WISHLIST</span></h2>
+                <p class="section-desc">Curated gear reserved for the future.</p>
+            </div>
+            <div class="wishlist-grid" id="wishlist-grid">
+                <!-- Wishlist items rendered here -->
+            </div>
+            <div class="wishlist-empty" id="wishlist-empty">
+                <div class="wishlist-empty-icon"><i class="fa-regular fa-heart"></i></div>
+                <h3>Your Wishlist is Empty</h3>
+                <p>Start adding your favorite pieces from the catalog.</p>
+                <a href="#shop" class="btn btn-primary"><i class="fa-solid fa-bag-shopping"></i> EXPLORE SHOP</a>
+            </div>
+        </div>
+    </section>
+
     <!-- Newsletter -->
     <section class="newsletter">
         <div class="container newsletter-content">
@@ -1129,10 +1223,10 @@
             <div class="footer-nav">
                 <h4>QUICK LINKS</h4>
                 <ul>
-                    <li><a href="#home">HOME</a></li>
-                    <li><a href="#shop">COLLECTIONS</a></li>
-                    <li><a href="#about">THE MOVEMENT</a></li>
-                    <li><a href="#testimonials">REVIEWS</a></li>
+                    <li><a href="/">HOME</a></li>
+                    <li><a href="/shop">COLLECTIONS</a></li>
+                    <li><a href="/#about">THE MOVEMENT</a></li>
+                    <li><a href="#reviews">REVIEWS</a></li>
                     <li><a href="#admin-gate" class="admin-access-link">SYSTEM COMMAND</a></li>
                 </ul>
             </div>
@@ -1150,6 +1244,7 @@
 
     <!-- Script -->
     <script type="module" src="script.js"></script>
+
 </body>
 
 </html>

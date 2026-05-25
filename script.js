@@ -53,6 +53,68 @@ async function testConnection() {
 testConnection();
 
 document.addEventListener("DOMContentLoaded", () => {
+  // ===== THEME SYSTEM =====
+  const themeToggle = document.getElementById('theme-toggle');
+  const STORAGE_KEY = '3drip-theme';
+  
+  // Apply theme immediately to prevent flash
+  const savedTheme = localStorage.getItem(STORAGE_KEY) || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  
+  // Update toggle icon to match current theme
+  function updateThemeIcon(theme) {
+    if (!themeToggle) return;
+    const sunIcon = themeToggle.querySelector('.theme-icon-sun');
+    const moonIcon = themeToggle.querySelector('.theme-icon-moon');
+    if (theme === 'light') {
+      sunIcon.style.opacity = '1';
+      moonIcon.style.opacity = '0';
+    } else {
+      sunIcon.style.opacity = '0';
+      moonIcon.style.opacity = '1';
+    }
+  }
+  updateThemeIcon(savedTheme);
+  
+  // Toggle theme with smooth animation
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    // Add animation class
+    if (themeToggle) themeToggle.classList.add('animating');
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem(STORAGE_KEY, newTheme);
+    updateThemeIcon(newTheme);
+    
+    // Remove animation class after animation completes
+    setTimeout(() => {
+      if (themeToggle) themeToggle.classList.remove('animating');
+    }, 400);
+  }
+  
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
+  
+  // Mobile menu theme button
+  const mobileThemeBtn = document.getElementById('mobile-theme-btn');
+  if (mobileThemeBtn) {
+    mobileThemeBtn.addEventListener('click', toggleTheme);
+  }
+  
+  // Also listen for system preference changes (optional enhancement)
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+  prefersDark.addEventListener('change', (e) => {
+    // Only apply if user hasn't manually set a preference
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      const newTheme = e.matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+  });
+
   // Operation Types for error handling
   const OperationType = {
     CREATE: "create",
@@ -89,9 +151,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 6000); // 6s duration
   };
 
+  const isPermissionError = (message) =>
+    /permission|insufficient permissions|not authorized/i.test(message);
+
   function handleFirestoreError(error, operationType, path) {
+    const message = error instanceof Error ? error.message : String(error);
     const errInfo = {
-      error: error instanceof Error ? error.message : String(error),
+      error: message,
       authInfo: {
         userId: auth.currentUser?.uid,
         email: auth.currentUser?.email,
@@ -101,7 +167,13 @@ document.addEventListener("DOMContentLoaded", () => {
       path,
     };
     console.error("Firestore Error: ", JSON.stringify(errInfo));
-    showToast(`ERROR: ${error.message || "PERMISSION DENIED"}`);
+
+    if (isPermissionError(message) && !Firewall.isAdmin()) {
+      console.warn("Firestore permission access skipped:", message, path);
+      return;
+    }
+
+    showToast(`ERROR: ${message || "PERMISSION DENIED"}`);
   }
 
   // Current state held in memory (synced with Firestore)
@@ -303,11 +375,20 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
+  const isMobileCursor =
+    window.matchMedia("(max-width: 768px)").matches ||
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0;
+
+  if (isMobileCursor) {
+    document.body.classList.add("no-custom-cursor");
+  }
+
   // 1. CUSTOM CURSOR
   const cursor = document.querySelector(".cursor");
   const cursorGlow = document.querySelector(".cursor-glow");
 
-  if (cursor && cursorGlow) {
+  if (!isMobileCursor && cursor && cursorGlow) {
     document.addEventListener("mousemove", (e) => {
       cursor.style.left = e.clientX + "px";
       cursor.style.top = e.clientY + "px";
@@ -407,6 +488,8 @@ document.addEventListener("DOMContentLoaded", () => {
     cart: ["cart"],
     admin: ["admin"],
     reviews: ["reviews"],
+    wishlist: ["wishlist"],
+    product: ["product-view"],
   };
 
   // 2.1 SECURITY LAYER / FIREWALL
@@ -561,62 +644,73 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     // Orders Listener (Admin Only)
-    // If not admin, the listener will naturally fail due to rules, which is handled.
-    const ordersRef = collection(db, "orders");
-    const ordersQuery = query(ordersRef, orderBy("createdAt", "desc"));
+    if (Firewall.isAdmin()) {
+      const ordersRef = collection(db, "orders");
+      const ordersQuery = query(ordersRef, orderBy("createdAt", "desc"));
 
-    activeListeners.orders = onSnapshot(
-      ordersQuery,
-      (snapshot) => {
-        console.log("[SYSTEM] ORDERS_SYNC_RECEIVED:", snapshot.docs.length);
+      activeListeners.orders = onSnapshot(
+        ordersQuery,
+        (snapshot) => {
+          console.log("[SYSTEM] ORDERS_SYNC_RECEIVED:", snapshot.docs.length);
 
-        state.orders = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+          state.orders = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
 
-        console.log("[SYSTEM] STATE_ORDERS_UPDATED:", state.orders.length);
-
-        // Always try to render orders if the common parent exists
-        renderAdminOrders();
-      },
-      (err) => {
-        console.error("[SYSTEM] ORDERS_LISTENER_CRITICAL_ERROR:", err.message);
-        // Only report to UI if they are supposed to be admin but permission failed
-        if (Firewall.isAdmin())
+          console.log("[SYSTEM] STATE_ORDERS_UPDATED:", state.orders.length);
+          renderAdminOrders();
+        },
+        (err) => {
+          console.error(
+            "[SYSTEM] ORDERS_LISTENER_CRITICAL_ERROR:",
+            err.message,
+          );
           handleFirestoreError(err, OperationType.LIST, "orders");
-      },
-    );
+        },
+      );
+    } else {
+      activeListeners.orders = null;
+    }
 
     // Logs Listener (Admin Only)
-    activeListeners.logs = onSnapshot(
-      collection(db, "logs"),
-      (snapshot) => {
-        state.logs = snapshot.docs.map((d) => ({ ...d.data(), id: d.id }));
-        if (Firewall.isAdmin()) renderLogs();
-      },
-      (err) => {
-        if (Firewall.isAdmin())
+    if (Firewall.isAdmin()) {
+      activeListeners.logs = onSnapshot(
+        collection(db, "logs"),
+        (snapshot) => {
+          state.logs = snapshot.docs.map((d) => ({ ...d.data(), id: d.id }));
+          renderLogs();
+        },
+        (err) => {
           handleFirestoreError(err, OperationType.LIST, "logs");
-      },
-    );
+        },
+      );
+    } else {
+      activeListeners.logs = null;
+    }
 
     // Trash Listener (Admin Only)
-    activeListeners.trash = onSnapshot(
-      collection(db, "trash"),
-      (snapshot) => {
-        state.trash = snapshot.docs.map((d) => ({ ...d.data(), id: d.id }));
-        if (Firewall.isAdmin()) renderTrash();
-      },
-      (err) => {
-        if (Firewall.isAdmin())
+    if (Firewall.isAdmin()) {
+      activeListeners.trash = onSnapshot(
+        collection(db, "trash"),
+        (snapshot) => {
+          state.trash = snapshot.docs.map((d) => ({ ...d.data(), id: d.id }));
+          renderTrash();
+        },
+        (err) => {
           handleFirestoreError(err, OperationType.LIST, "trash");
-      },
-    );
+        },
+      );
+    } else {
+      activeListeners.trash = null;
+    }
 
     // Reviews Listener (Mixed - Admin can see all, Public see published)
+    const reviewsRef = collection(db, "reviews");
+    const reviewsQuery = query(reviewsRef, orderBy("createdAt", "desc"));
+
     activeListeners.reviews = onSnapshot(
-      collection(db, "reviews"),
+      reviewsQuery,
       (snapshot) => {
         state.reviews = snapshot.docs.map((d) => ({ ...d.data(), id: d.id }));
         renderPublicReviews();
@@ -639,6 +733,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCategoryOptions();
         renderCategoryFilterBar();
         renderStore();
+        populateMobileCategories(); // ← Ensure mobile filter updates with live categories
         if (Firewall.isAdmin()) {
           renderAdminCategories();
           // After first load of categories, ensure defaults exist
@@ -691,6 +786,55 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sidebarOverlay)
     sidebarOverlay.addEventListener("click", toggleAdminSidebar);
 
+  // Expandable Navbar Search
+  const searchIconBtn = document.querySelector(".search-icon-btn");
+  const searchInputWrapper = document.querySelector(".search-input-wrapper");
+  const navbarSearchInput = document.querySelector(".navbar-search-input");
+  const navbarSearch = document.querySelector(".navbar-search");
+
+  if (searchIconBtn && searchInputWrapper && navbarSearchInput) {
+    const setSearchExpanded = (expanded) => {
+      searchInputWrapper.classList.toggle("active", expanded);
+      searchIconBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+      if (expanded) {
+        navbarSearchInput.focus();
+      }
+    };
+
+    const toggleSearch = () => {
+      setSearchExpanded(!searchInputWrapper.classList.contains("active"));
+    };
+
+    // Click on search icon to toggle
+    searchIconBtn.addEventListener("click", toggleSearch);
+
+    // Close search on ESC key and submit on Enter
+    navbarSearchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        setSearchExpanded(false);
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const query = String(navbarSearchInput.value || "").trim();
+        updateSearchQuery(query);
+        navigateToShopWithSearch(query);
+        setSearchExpanded(false);
+      }
+    });
+
+    // Close search when clicking outside
+    document.addEventListener("click", (e) => {
+      if (
+        searchInputWrapper.classList.contains("active") &&
+        navbarSearch &&
+        !navbarSearch.contains(e.target)
+      ) {
+        setSearchExpanded(false);
+      }
+    });
+  }
+
   const showView = (viewKey) => {
     // Firewall Check: Redirect if unauthorized
     if (!Firewall.guard(viewKey)) return;
@@ -729,13 +873,20 @@ document.addEventListener("DOMContentLoaded", () => {
     window.dispatchEvent(new Event("viewChanged"));
 
     if (viewKey === "shop" || viewKey === "home") renderStore();
+    if (viewKey === "shop") {
+      if (typeof renderShopControls === "function") renderShopControls();
+    }
     if (viewKey === "home" || viewKey === "reviews") renderPublicReviews();
+    if (viewKey === "wishlist") {
+      renderWishlist();
+    }
     if (viewKey === "admin") {
       renderAdmin();
       renderLogs();
       renderTrash();
       renderAdminReviews();
     }
+    syncWishlistUI();
   };
 
   // 2.1 ADMIN AUTH
@@ -783,43 +934,290 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderStore = () => {
     const products = state.products;
-    const mainGrid = document.getElementById("main-product-grid");
+    const mainGrid = document.getElementById("products-grid");
     const featuredGrid = document.querySelector("#featured .product-grid");
 
-    const filteredProducts =
-      selectedProductCategory === "all"
-        ? products
-        : products.filter((p) => p.categoryId === selectedProductCategory);
+    const normalizedQuery = String(searchQuery || "").toLowerCase();
 
-    const productToHTML = (p) => `
+    const filteredProducts = products.filter((p) => {
+      const matchesCategory =
+        selectedProductCategory === "all" ||
+        p.categoryId === selectedProductCategory;
+
+      const productName = String(p.name || "").toLowerCase();
+      const categoryName = String(
+        getCategoryLabel(p.categoryId, p.category),
+      ).toLowerCase();
+      const matchesSearch =
+        normalizedQuery === "" ||
+        productName.includes(normalizedQuery) ||
+        categoryName.includes(normalizedQuery);
+
+      return matchesCategory && matchesSearch;
+    });
+
+    const isListView = shopViewMode === "list";
+
+    const productToHTML = (p) => {
+      if (isListView) {
+        return `
             <div class="product-card" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-img="${p.img}">
-                <div class="product-img-wrapper">
-                    <img src="${p.img}" alt="${p.name}">
-                    <div class="product-overlay">
-                        <button class="btn btn-mini add-to-cart">ADD TO CART</button>
-                    </div>
+              <div class="product-image-container">
+                <img src="${p.img}" alt="${p.name}" class="product-image" loading="lazy" decoding="async">
+                <button class="wishlist-btn" data-id="${p.id}" title="Add to Wishlist">
+                  <i class="far fa-heart"></i>
+                </button>
+              </div>
+              <div class="product-info">
+                <div class="product-info-left">
+                  <div class="product-brand">${getCategoryLabel(p.categoryId, p.category) || "3DRIP"}</div>
+                  <div class="product-name">${p.name}</div>
+                  <div class="product-category-pill">${getCategoryLabel(p.categoryId, p.category) || "Essential"}</div>
+                  <div class="product-desc">Premium quality streetwear essential from the 3DRIP collection.</div>
                 </div>
-                <div class="product-info">
-                    <div class="product-meta">
-                        <span class="label">${getCategoryLabel(p.categoryId, p.category)}</span>
-                        <span class="price">${p.price.toLocaleString()} DZD</span>
-                    </div>
-                    <h3 class="product-name">${p.name}</h3>
+                <div class="product-info-center">
+                  <div class="product-price">${p.price.toLocaleString()} DA</div>
+                  <div class="product-price-label">Algerian Dinar</div>
                 </div>
+                <div class="product-actions">
+                  <button class="add-to-cart-btn" data-id="${p.id}">
+                    <i class="fas fa-shopping-cart"></i>
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
             </div>
-        `;
+          `;
+      }
+      return `
+            <div class="product-card" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-img="${p.img}">
+              <div class="product-image-container">
+                <img src="${p.img}" alt="${p.name}" class="product-image" loading="lazy" decoding="async">
+                <button class="wishlist-btn" data-id="${p.id}" title="Add to Wishlist">
+                  <i class="far fa-heart"></i>
+                </button>
+              </div>
+              <div class="product-info">
+                <div class="product-brand">${getCategoryLabel(p.categoryId, p.category) || "3DRIP"}</div>
+                <div class="product-name">${p.name}</div>
+                <div class="product-price">${p.price.toLocaleString()} DZD</div>
+                <div class="product-card-btns">
+                  <button class="add-to-cart-btn" data-id="${p.id}">
+                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                  </button>
+                  <button class="card-buy-now-btn" data-id="${p.id}">
+                    <i class="fa-solid fa-bolt"></i> Buy Now
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+    };
 
-    if (mainGrid)
+    // Apply sorting
+    let sortedProducts = filteredProducts.slice();
+    switch (shopSortBy) {
+      case "price-asc":
+        sortedProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case "price-desc":
+        sortedProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case "newest":
+        sortedProducts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        break;
+      case "best-selling":
+        sortedProducts.sort((a, b) => (b.sold || 0) - (a.sold || 0));
+        break;
+      default:
+        // featured or unknown: keep original order
+        break;
+    }
+
+    if (mainGrid) {
+      // Set view mode class
+      mainGrid.classList.toggle("list-view", shopViewMode === "list");
       mainGrid.innerHTML =
-        filteredProducts.length > 0
-          ? filteredProducts.map(productToHTML).join("")
+        sortedProducts.length > 0
+          ? sortedProducts.map(productToHTML).join("")
           : '<p class="empty-msg">NO PRODUCTS FOUND FOR THIS CATEGORY.</p>';
+    }
 
     if (featuredGrid)
       featuredGrid.innerHTML = products.slice(0, 3).map(productToHTML).join("");
   };
 
   let selectedProductCategory = "all";
+  let searchQuery = "";
+  let shopSortBy = "featured";
+  let shopViewMode = "grid";
+  let homeSearchDraft = "";
+
+  const escapeInputValue = (value) =>
+    String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const updateSearchQuery = (value) => {
+    searchQuery = String(value || "").trim();
+    const homeInput = document.getElementById("home-search-input");
+    if (homeInput) homeInput.value = searchQuery;
+    const navbarSearchInput = document.querySelector(".navbar-search-input");
+    if (navbarSearchInput && navbarSearchInput.value !== searchQuery)
+      navbarSearchInput.value = searchQuery;
+    renderCategoryFilterBar();
+    renderStore();
+  };
+
+  // Render and wire the top shop controls (search, sort, view)
+  const renderShopControls = () => {
+    const topSearch = document.getElementById("shop-search-input");
+    const sortSelect = document.getElementById("sort-select");
+    const viewBtns = document.querySelectorAll(".view-toggle .view-btn");
+
+    if (topSearch && !window.__shopTopSearchListenerAdded) {
+      let searchTimeout;
+      topSearch.addEventListener("input", (e) => {
+        clearTimeout(searchTimeout);
+        const q = String(e.target.value || "").trim();
+        searchTimeout = setTimeout(() => {
+          updateSearchQuery(q);
+        }, 200);
+      });
+      window.__shopTopSearchListenerAdded = true;
+    }
+
+    if (sortSelect && !window.__shopSortListenerAdded) {
+      sortSelect.value = shopSortBy || "featured";
+      sortSelect.addEventListener("change", (e) => {
+        shopSortBy = e.target.value;
+        renderStore();
+      });
+      window.__shopSortListenerAdded = true;
+    }
+
+    if (viewBtns && !window.__shopViewListenerAdded) {
+      viewBtns.forEach((btn) =>
+        btn.addEventListener("click", (e) => {
+          const v = btn.dataset.view || "grid";
+          shopViewMode = v;
+          document.querySelectorAll(".view-toggle .view-btn").forEach((b) => {
+            b.classList.toggle("active", b.dataset.view === v);
+            b.setAttribute(
+              "aria-pressed",
+              b.dataset.view === v ? "true" : "false",
+            );
+          });
+          renderStore();
+        }),
+      );
+      window.__shopViewListenerAdded = true;
+    }
+  };
+
+  const parseHash = (hash) => {
+    const cleanHash = String(hash || window.location.hash || "#home").replace(
+      /^#/,
+      "",
+    );
+    const [viewName, queryString] = cleanHash.split("?");
+    const params = new URLSearchParams(queryString || "");
+    return {
+      view: viewName || "home",
+      search: params.get("search") || "",
+    };
+  };
+
+  const navigateToShopWithSearch = (rawQuery) => {
+    const query = String(rawQuery || "").trim();
+    const hash = query ? `#shop?search=${encodeURIComponent(query)}` : "#shop";
+    if (window.location.hash !== hash) {
+      window.location.hash = hash;
+    }
+    handleHashNavigation();
+  };
+
+  const handleHashNavigation = () => {
+    const cleanHash = String(window.location.hash || "#home").replace(/^#/, "");
+    
+    // Check for product route: product/PRODUCT_ID
+    const productMatch = cleanHash.match(/^product\/(.+)$/);
+    if (productMatch) {
+      const productId = productMatch[1];
+      showView("product");
+      renderProductPage(productId);
+      return;
+    }
+
+    const { view, search } = parseHash(window.location.hash);
+    if (search) {
+      updateSearchQuery(search);
+      if (view === "shop") {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + "#shop",
+        );
+      } else {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + "#home",
+        );
+      }
+    }
+
+    const path = window.location.pathname.replace(/\/$/, "");
+    const isReviewsPath = path.endsWith("/reviews");
+    const isShopPath = path.endsWith("/shop");
+    const isCartPath = path.endsWith("/cart");
+    const isAdminPath = path.endsWith("/admin");
+
+    if (!window.location.hash || window.location.hash === "#") {
+      if (isReviewsPath) {
+        showView("reviews");
+        return;
+      }
+      if (isShopPath) {
+        showView("shop");
+        return;
+      }
+      if (isCartPath) {
+        showView("cart");
+        renderCart();
+        return;
+      }
+      if (isAdminPath) {
+        showView("admin");
+        return;
+      }
+    }
+
+    if (view === "shop") {
+      showView("shop");
+      return;
+    }
+
+    if (view === "reviews") {
+      showView("reviews");
+      return;
+    }
+
+    if (view === "cart") {
+      showView("cart");
+      renderCart();
+      return;
+    }
+
+    if (view === "wishlist") {
+      showView("wishlist");
+      return;
+    }
+
+    showView("home");
+  };
 
   const getCategoryNames = () => {
     const categoryNames = state.categories
@@ -838,20 +1236,110 @@ document.addEventListener("DOMContentLoaded", () => {
   const getCategoryFilterItems = () => {
     const categories = state.categories || [];
     const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
-    return [{ id: "all", name: "All" }, ...sorted.map((c) => ({ id: c.id, name: c.name }))];
+    return [
+      { id: "all", name: "All" },
+      ...sorted.map((c) => ({ id: c.id, name: c.name })),
+    ];
   };
 
   const renderCategoryFilterBar = () => {
     const filterBar = document.getElementById("product-filter-bar");
     if (!filterBar) return;
 
-    filterBar.innerHTML = getCategoryFilterItems()
+    const items = getCategoryFilterItems();
+    const hasExistingPanel = Boolean(filterBar.querySelector(".filter-panel"));
+
+    if (!hasExistingPanel) {
+      filterBar.innerHTML = `
+        <div class="filter-panel">
+          <div class="filter-panel-header">
+            <div>
+              <span class="filter-panel-tag">FILTERS</span>
+              <h3>Refine your search</h3>
+            </div>
+            <button type="button" class="sidebar-close-btn" aria-label="Close filters">&times;</button>
+          </div>
+          <div class="filter-section">
+            <h4>Categories</h4>
+            <div class="filter-items"></div>
+          </div>
+        </div>
+      `;
+
+      if (!document.querySelector(".sidebar-toggle-btn")) {
+        filterBar.insertAdjacentHTML(
+          "beforebegin",
+          `<button type="button" class="sidebar-toggle-btn" aria-controls="product-filter-bar" aria-expanded="false"><i class="fa-solid fa-filter"></i> Filters</button>`,
+        );
+      }
+    }
+
+    const sidebarToggle = document.querySelector(".sidebar-toggle-btn");
+    const sidebarClose = filterBar.querySelector(".sidebar-close-btn");
+    const filterItemsContainer = filterBar.querySelector(".filter-items");
+
+    if (!sidebarToggle || !sidebarClose || !filterItemsContainer) return;
+
+    const openSidebar = () => {
+      document.body.classList.add("shop-sidebar-open");
+      sidebarToggle.setAttribute("aria-expanded", "true");
+    };
+
+    const closeSidebar = () => {
+      document.body.classList.remove("shop-sidebar-open");
+      sidebarToggle.setAttribute("aria-expanded", "false");
+    };
+
+    if (!window.__shopSidebarToggleListenersAdded) {
+      sidebarToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.body.classList.toggle("shop-sidebar-open");
+        sidebarToggle.setAttribute(
+          "aria-expanded",
+          document.body.classList.contains("shop-sidebar-open")
+            ? "true"
+            : "false",
+        );
+      });
+
+      sidebarClose.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeSidebar();
+      });
+
+      window.addEventListener("click", (e) => {
+        const sidebar = document.getElementById("product-filter-bar");
+        if (!sidebar) return;
+        if (
+          document.body.classList.contains("shop-sidebar-open") &&
+          !sidebar.contains(e.target) &&
+          !sidebarToggle.contains(e.target)
+        ) {
+          closeSidebar();
+        }
+      });
+
+      window.__shopSidebarToggleListenersAdded = true;
+    }
+
+    filterItemsContainer.innerHTML = items
       .map(
-        (filter) => `<button type="button" class="filter-btn ${
-          selectedProductCategory === filter.id ? "active" : ""
-        }" data-category-id="${filter.id}">${filter.name}</button>`,
+        (item) =>
+          `<button type="button" class="filter-item ${
+            selectedProductCategory === item.id ? "active" : ""
+          }" data-category-id="${item.id}">${item.name}</button>`,
       )
       .join("");
+
+    filterItemsContainer
+      .querySelectorAll("button[data-category-id]")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.categoryId;
+          updateSelectedProductCategory(id);
+          closeSidebar();
+        });
+      });
   };
 
   const updateSelectedProductCategory = (categoryId) => {
@@ -860,6 +1348,27 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCategoryFilterBar();
     renderStore();
   };
+
+  const submitHomeSearch = () => {
+    const homeInput = document.getElementById("home-search-input");
+    const query = homeInput ? String(homeInput.value || "").trim() : "";
+    homeSearchDraft = query;
+    navigateToShopWithSearch(query);
+  };
+
+  const homeSearchInput = document.getElementById("home-search-input");
+  const homeSearchButton = document.getElementById("home-search-submit");
+  if (homeSearchInput) {
+    homeSearchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        submitHomeSearch();
+      }
+    });
+  }
+  if (homeSearchButton) {
+    homeSearchButton.addEventListener("click", submitHomeSearch);
+  }
 
   const renderCategoryOptions = (selectedCategoryId = "") => {
     const categorySelect = document.getElementById("p-category");
@@ -906,9 +1415,7 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryList.innerHTML = categories
       .map((cat) => {
         const productCount = state.products.filter(
-          (p) =>
-            p.categoryId === cat.id ||
-            p.category === cat.name,
+          (p) => p.categoryId === cat.id || p.category === cat.name,
         ).length;
         const createdAt = cat.createdAt
           ? new Date(cat.createdAt).toLocaleDateString()
@@ -1057,13 +1564,38 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 4. CART SYSTEM
-  let cart = [];
+  let cart = JSON.parse(localStorage.getItem("3drip_cart") || "[]");
   const cartBadge = document.querySelector(".cart-count");
   const cartBadgeMobile = document.querySelector(".cart-count-mobile");
   const cartItemsList = document.getElementById("cart-items-list");
   const subtotalEl = document.getElementById("subtotal");
   const totalEl = document.getElementById("total-price");
   let viewingCart = false;
+
+  // Save cart to localStorage
+  const saveCart = () => {
+    localStorage.setItem("3drip_cart", JSON.stringify(cart));
+  };
+
+  // Unified add to cart function
+  const addToCart = (product, quantity = 1) => {
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      img: product.img,
+      quantity: quantity,
+    };
+    const existing = cart.find((item) => item.id === product.id);
+    if (existing) {
+      existing.quantity = (existing.quantity || 1) + quantity;
+    } else {
+      cart.push(cartItem);
+    }
+    saveCart();
+    updateCartUI();
+    return existing ? existing : cartItem;
+  };
 
   const updateCartUI = () => {
     const totalQuantity = cart.reduce(
@@ -1119,48 +1651,226 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (cartItemsList) {
     cartItemsList.addEventListener("click", (e) => {
-      const idx = parseInt(e.target.dataset.index);
-      if (e.target.classList.contains("remove-btn")) {
-        cart.splice(idx, 1);
-        updateCartUI();
-      } else if (e.target.classList.contains("qty-btn")) {
-        const delta = parseInt(e.target.dataset.delta);
+      const removeBtn = e.target.closest(".remove-btn");
+      const qtyBtn = e.target.closest(".qty-btn");
+
+      if (removeBtn) {
+        const idx = parseInt(removeBtn.dataset.index, 10);
+        const cartItemEl = removeBtn.closest(".cart-item");
+        if (cartItemEl) {
+          cartItemEl.classList.add("removing");
+          cartItemEl.style.pointerEvents = "none";
+        }
+        setTimeout(() => {
+          if (Number.isFinite(idx) && idx >= 0 && idx < cart.length) {
+            cart.splice(idx, 1);
+            saveCart();
+            updateCartUI();
+          }
+        }, 320);
+      } else if (qtyBtn) {
+        const idx = parseInt(qtyBtn.dataset.index, 10);
+        const delta = parseInt(qtyBtn.dataset.delta, 10);
+        if (!Number.isFinite(idx) || !Number.isFinite(delta)) return;
         const currentQty = cart[idx].quantity || 1;
         cart[idx].quantity = currentQty + delta;
         if (cart[idx].quantity < 1) cart[idx].quantity = 1;
+        saveCart();
         updateCartUI();
       }
     });
   }
 
+  // Initialize cart UI on page load to display persisted cart count
+  updateCartUI();
+
+  // ============ WISHLIST SYSTEM ============
+  let wishlist = JSON.parse(localStorage.getItem("3drip_wishlist") || "[]");
+
+  const saveWishlist = () => {
+    localStorage.setItem("3drip_wishlist", JSON.stringify(wishlist));
+    const badge = document.getElementById("wishlist-badge");
+    if (badge) badge.textContent = wishlist.length;
+    syncWishlistUI();
+    // Re-render wishlist page if currently viewing it
+    const wishlistSection = document.getElementById("wishlist");
+    if (wishlistSection && wishlistSection.style.display !== "none") {
+      renderWishlist();
+    }
+  };
+
+  const isInWishlist = (productId) =>
+    wishlist.some((item) => item.id === productId);
+
+  const toggleWishlist = (product) => {
+    const idx = wishlist.findIndex((item) => item.id === product.id);
+    if (idx > -1) {
+      wishlist.splice(idx, 1);
+      showToast("Removed from Wishlist");
+    } else {
+      wishlist.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        img: product.img,
+        category: product.category,
+      });
+      showToast("Added to Wishlist ❤️");
+    }
+    saveWishlist();
+  };
+
+  const syncWishlistUI = () => {
+    document.querySelectorAll(".wishlist-btn").forEach((btn) => {
+      const id = btn.dataset.id;
+      const icon = btn.querySelector("i");
+      if (isInWishlist(id)) {
+        btn.classList.add("active");
+        if (icon) {
+          icon.classList.remove("far");
+          icon.classList.add("fas");
+        }
+      } else {
+        btn.classList.remove("active");
+        if (icon) {
+          icon.classList.remove("fas");
+          icon.classList.add("far");
+        }
+      }
+    });
+  };
+
+  // Delegate wishlist button clicks (for both grid/list views)
   document.body.addEventListener("click", (e) => {
-    if (e.target.classList.contains("add-to-cart")) {
-      const card = e.target.closest(".product-card");
+    const btn = e.target.closest(".wishlist-btn");
+    if (btn) {
+      e.preventDefault();
+      const card = btn.closest(".product-card");
+      if (!card) return;
       const product = {
         id: card.dataset.id,
         name: card.dataset.name,
         price: parseInt(card.dataset.price),
         img: card.dataset.img,
-        quantity: 1,
+        category: card.dataset.category || "",
       };
-      const existing = cart.find((item) => item.id === product.id);
-      if (existing) {
-        existing.quantity = (existing.quantity || 0) + 1;
-      } else {
-        cart.push(product);
-      }
-      updateCartUI();
-      const btn = e.target;
-      const originalText = btn.textContent;
-      btn.textContent = "ADDED!";
-      btn.style.background = "white";
-      btn.style.color = "black";
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = "var(--accent)";
-        btn.style.color = "white";
-      }, 1000);
+      toggleWishlist(product);
+      btn.classList.add("animate");
+      setTimeout(() => btn.classList.remove("animate"), 400);
+      return;
     }
+  });
+
+  const renderWishlist = () => {
+    const grid = document.getElementById("wishlist-grid");
+    const empty = document.getElementById("wishlist-empty");
+    if (!grid || !empty) return;
+
+    if (wishlist.length === 0) {
+      grid.innerHTML = "";
+      empty.classList.add("show");
+      return;
+    }
+    empty.classList.remove("show");
+    grid.innerHTML = wishlist
+      .map(
+        (item) => `
+        <div class="product-card" data-id="${item.id}" data-name="${item.name}" data-price="${item.price || 0}" data-img="${item.img}">
+          <div class="product-image-container">
+            <img src="${item.img}" alt="${item.name}" class="product-image" loading="lazy" decoding="async">
+            <button class="wishlist-btn active" data-id="${item.id}" title="Remove from Wishlist">
+              <i class="fas fa-heart"></i>
+            </button>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">${item.category || "3DRIP"}</div>
+            <div class="product-name">${item.name}</div>
+            <div class="product-price">${(item.price || 0).toLocaleString()} DZD</div>
+            <button class="add-to-cart-btn wishlist-add-cart" data-id="${item.id}">
+              <i class="fas fa-shopping-cart"></i>
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      `,
+      )
+      .join("");
+  };
+
+  // Initialize wishlist badge on load
+  const initWishlistBadge = () => {
+    const badge = document.getElementById("wishlist-badge");
+    if (badge) badge.textContent = wishlist.length;
+  };
+  initWishlistBadge();
+
+  // Delegate Buy Now button clicks from product cards
+  document.body.addEventListener("click", (e) => {
+    // Handle both .buy-now-btn (product page) and .card-buy-now-btn (product cards)
+    const buyNowBtn = e.target.closest(".buy-now-btn, .card-buy-now-btn");
+    if (buyNowBtn) {
+      e.preventDefault();
+      const card = buyNowBtn.closest(".product-card") || buyNowBtn.closest("[data-id]");
+      if (card) {
+        const productId = card.dataset.id;
+        // Navigate to product page via hash
+        window.location.hash = `#product/${productId}`;
+        handleHashNavigation();
+      }
+      return;
+    }
+  });
+
+  // Unified Add to Cart handler - handles all button types
+  document.body.addEventListener("click", (e) => {
+    // Check for .add-to-cart-btn (product cards) or .add-to-cart (legacy)
+    const addBtn = e.target.closest(".add-to-cart-btn, .add-to-cart");
+    if (!addBtn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Get the product card
+    const card = addBtn.closest(".product-card") || addBtn.closest("[data-id]");
+    if (!card) {
+      console.warn("[CART] No product card found for add to cart button");
+      return;
+    }
+
+    // Extract product data from card attributes
+    const product = {
+      id: card.dataset.id,
+      name: card.dataset.name,
+      price: parseInt(card.dataset.price),
+      img: card.dataset.img,
+    };
+
+    // Validate product data
+    if (!product.id || !product.name || isNaN(product.price) || !product.img) {
+      console.warn("[CART] Invalid product data:", product);
+      showToast("ERROR: Invalid product data.");
+      return;
+    }
+
+    // Add to cart
+    addToCart(product, 1);
+    showToast(`ADDED TO BAG: ${product.name}`);
+
+    // Button feedback animation
+    const btn = addBtn;
+    const originalText = btn.textContent;
+    const originalBg = btn.style.background;
+    const originalColor = btn.style.color;
+    btn.textContent = "ADDED!";
+    btn.style.background = "white";
+    btn.style.color = "black";
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = originalBg || "var(--accent)";
+      btn.style.color = originalColor || "white";
+      btn.disabled = false;
+    }, 1000);
   });
 
   // 5. ADMIN PANEL LOGIC
@@ -1205,64 +1915,73 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderAdminOrders = () => {
     if (!Firewall.isAdmin()) return;
     const orders = state.orders;
-    const adminOrderList = document.getElementById("admin-order-list");
-    if (!adminOrderList) return;
+    const container = document.getElementById("orders-compact-container");
+    const emptyState = document.getElementById("orders-empty-state");
+    const countBadge = document.getElementById("orders-count-badge");
+
+    if (countBadge) {
+      countBadge.textContent = `${orders.length} ORDER${orders.length !== 1 ? 'S' : ''}`;
+    }
+
+    if (orders.length === 0) {
+      if (container) container.innerHTML = "";
+      if (container) container.style.display = "none";
+      if (emptyState) emptyState.style.display = "block";
+      return;
+    }
+
+    if (emptyState) emptyState.style.display = "none";
+    if (container) container.style.display = "flex";
 
     console.log("[SYSTEM] RENDERING_ADMIN_ORDERS:", orders.length);
-    adminOrderList.innerHTML = [...orders]
-      .map((o) => {
+
+    const ordersHTML = [...orders]
+      .sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      })
+      .map((o, index) => {
         const totalItems = (o.items || []).reduce(
           (acc, item) => acc + (item.quantity || 1),
           0,
         );
         const formattedDate = o.createdAt
-          ? new Date(o.createdAt).toLocaleString()
+          ? new Date(o.createdAt).toLocaleDateString()
           : "N/A";
-        const gearSummary = (o.items || [])
-          .map((item) => `${item.name} (${item.quantity || 1})`)
-          .join(", ");
+        const shortId = o.id ? o.id.slice(-6).toUpperCase() : "------";
+        const statusLower = (o.status || "PENDING").toLowerCase();
 
         return `
-                <tr class="reveal active admin-row-trigger" onclick="openOrderDetail('${o.id}')">
-                    <td>
-                        <strong style="color: #fff;">${o.customer?.name || "UNKNOWN"}</strong>
-                        <div class="desktop-only"><small style="opacity: 0.5;">${o.customer?.email || ""}</small></div>
-                    </td>
-                    <td style="font-size: 0.75rem; opacity: 0.7;">
-                        ${o.customer?.address || "N/A"}
-                    </td>
-                    <td class="desktop-only" style="font-size: 0.7rem; max-width: 250px;">
-                        <span style="opacity: 0.8;">${gearSummary}</span><br>
-                        <strong style="color: var(--accent);">${totalItems} ITEMS</strong>
-                    </td>
-                    <td class="desktop-only">
-                        <strong>${(o.total || 0).toLocaleString()}</strong><br>
-                        <small>DZD</small>
-                    </td>
-                    <td class="desktop-only">
-                        <select class="admin-select-status" onchange="updateOrderStatus('${o.id}', this.value)">
-                            <option value="PENDING" ${o.status === "PENDING" ? "selected" : ""}>PENDING</option>
-                            <option value="PROCESSING" ${o.status === "PROCESSING" ? "selected" : ""}>PROCESSING</option>
-                            <option value="COMPLETED" ${o.status === "COMPLETED" ? "selected" : ""}>COMPLETED</option>
-                            <option value="CANCELLED" ${o.status === "CANCELLED" ? "selected" : ""}>CANCELLED</option>
-                        </select>
-                    </td>
-                    <td class="desktop-only" style="font-size: 0.7rem; opacity: 0.5;">
-                        ${formattedDate}
-                    </td>
-                </tr>
-            `;
+          <div class="order-compact-card" id="order-card-${o.id}">
+            <div class="order-compact-main" onclick="openOrderDetail('${o.id}')">
+              <span class="order-index">#ORD-${shortId}</span>
+              <div class="order-compact-info">
+                <span class="order-compact-customer">${o.customer?.name || "UNKNOWN"}</span>
+                <div class="order-compact-meta">
+                  <span><i class="fa-solid fa-calendar"></i> ${formattedDate}</span>
+                  <span><i class="fa-solid fa-box"></i> ${totalItems} item${totalItems !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+              <div class="order-compact-total">${(o.total || 0).toLocaleString()} DZD</div>
+              <div class="order-compact-status">
+                <span class="status-badge status-${statusLower}">${o.status || "PENDING"}</span>
+                <div class="order-compact-view-icon">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
       })
       .join("");
+
+    if (container) container.innerHTML = ordersHTML;
     console.log("[SYSTEM] ADMIN_ORDERS_RENDER_COMPLETE");
   };
 
   window.openOrderDetail = (id) => {
     if (!Firewall.isAdmin()) return;
-
-    // ONLY OPEN MODAL ON MOBILE (<= 900px)
-    // Desktop shows full info in row, so modal is redundant
-    if (window.innerWidth > 900) return;
 
     const order = state.orders.find((o) => o.id === id);
     if (!order) return;
@@ -1270,21 +1989,45 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("order-detail-modal");
     if (!modal) return;
 
-    // Fill data
-    document.getElementById("dt-order-id").textContent =
-      `TRANS_ID: ${order.id}`;
+    // Fill transaction ID
+    document.getElementById("dt-order-id").textContent = `TRANS_ID: ${order.id}`;
+
+    // Fill customer info
     document.getElementById("dt-customer-name").textContent =
       order.customer?.name || "N/A";
-    document.getElementById("dt-customer-email").textContent =
-      order.customer?.email || "N/A";
+    const phoneEl = document.getElementById("dt-customer-phone");
+    if (phoneEl) phoneEl.textContent = order.customer?.phone || "N/A";
+    
+    const locationEl = document.getElementById("dt-customer-location");
+    if (locationEl) {
+      const wilaya = order.customer?.wilaya || "";
+      const city = order.customer?.city || "";
+      locationEl.textContent = [wilaya, city].filter(Boolean).join(", ") || "N/A";
+    }
+    
     document.getElementById("dt-customer-address").textContent =
       order.customer?.address || "N/A";
+    
+    // Fill notes if they exist
+    const notesWrapper = document.getElementById("dt-notes-wrapper");
+    const notesEl = document.getElementById("dt-customer-notes");
+    if (order.customer?.notes && notesWrapper && notesEl) {
+      notesWrapper.style.display = "block";
+      notesEl.textContent = order.customer.notes;
+    } else if (notesWrapper) {
+      notesWrapper.style.display = "none";
+    }
+
+    // Fill date
     document.getElementById("dt-order-date").textContent = order.createdAt
       ? new Date(order.createdAt).toLocaleString()
       : "N/A";
+    
+    // Fill total
     document.getElementById("dt-total-price").textContent =
       `${(order.total || 0).toLocaleString()} DZD`;
 
+    // Fill status
     const statusEl = document.getElementById("dt-order-status");
     statusEl.textContent = order.status || "PENDING";
     statusEl.className = `status-badge status-${(order.status || "PENDING").toLowerCase()}`;
@@ -1310,41 +2053,49 @@ document.addEventListener("DOMContentLoaded", () => {
       )
       .join("");
 
-    // Adaptive UI Logic
+    // Fill status controls
     const statusControls = document.getElementById("order-status-controls");
-    const mobileActions = document.getElementById("dt-mobile-actions");
-    const footer = document.getElementById("dt-footer");
-    const isMobile = window.innerWidth <= 900;
+    if (statusControls) {
+      statusControls.innerHTML = `
+        <button class="btn btn-mini" style="background: rgba(255, 230, 0, 0.15); color: #ffe600; border: 1px solid rgba(255, 230, 0, 0.3);" onclick="updateOrderStatusFromDetail('${order.id}', 'PENDING')">PENDING</button>
+        <button class="btn btn-mini" style="background: rgba(0, 212, 255, 0.15); color: #00d4ff; border: 1px solid rgba(0, 212, 255, 0.3);" onclick="updateOrderStatusFromDetail('${order.id}', 'PROCESSING')">PROCESSING</button>
+        <button class="btn btn-mini" style="background: rgba(0, 255, 128, 0.15); color: #00ff80; border: 1px solid rgba(0, 255, 128, 0.3);" onclick="updateOrderStatusFromDetail('${order.id}', 'COMPLETED')">COMPLETED</button>
+        <button class="btn btn-mini" style="background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3);" onclick="updateOrderStatusFromDetail('${order.id}', 'CANCELLED')">CANCELLED</button>
+      `;
+    }
 
-    if (isMobile) {
-      if (statusControls) statusControls.style.display = "none";
-      if (mobileActions) {
-        mobileActions.style.display = "flex";
-        // Reset state for mobile buttons
-        document.querySelectorAll(".m-dt-btn").forEach((btn) => {
-          btn.onclick = () => {
-            const newStatus = btn.dataset.status;
-            window.updateOrderStatus(order.id, newStatus);
-            // Update UI locally
-            statusEl.textContent = newStatus;
-            statusEl.className = `status-badge status-${newStatus.toLowerCase()}`;
-          };
-        });
-      }
-    } else {
-      if (statusControls) {
-        statusControls.style.display = "flex";
-        const statuses = ["PENDING", "PROCESSING", "COMPLETED", "CANCELLED"];
-        statusControls.innerHTML = `
-                    <select class="admin-select" style="margin: 0;" onchange="updateOrderStatus('${order.id}', this.value); document.getElementById('dt-order-status').textContent = this.value; document.getElementById('dt-order-status').className = 'status-badge status-' + this.value.toLowerCase();">
-                        ${statuses.map((s) => `<option value="${s}" ${order.status === s ? "selected" : ""}>${s}</option>`).join("")}
-                    </select>
-                `;
-      }
-      if (mobileActions) mobileActions.style.display = "none";
+    // Wire up delete button
+    const deleteBtn = document.getElementById("dt-delete-order-btn");
+    if (deleteBtn) {
+      deleteBtn.onclick = async () => {
+        if (confirm("PERMANENTLY DELETE THIS ORDER?")) {
+          try {
+            await deleteDoc(doc(db, "orders", order.id));
+            modal.classList.remove("active");
+            showToast("ORDER PURGED FROM SYSTEM.");
+          } catch (err) {
+            console.error("DELETE ORDER ERROR:", err);
+            showToast("FAILED TO DELETE ORDER.");
+          }
+        }
+      };
     }
 
     modal.classList.add("active");
+  };
+
+  window.updateOrderStatusFromDetail = async (id, status) => {
+    if (!Firewall.isAdmin()) return;
+    await DB.updateOrderStatus(id, status);
+    
+    // Update UI locally
+    const statusEl = document.getElementById("dt-order-status");
+    if (statusEl) {
+      statusEl.textContent = status;
+      statusEl.className = `status-badge status-${status.toLowerCase()}`;
+    }
+    
+    showToast(`ORDER STATUS UPDATED: ${status}`);
   };
 
   const renderAdminReviews = () => {
@@ -1892,6 +2643,7 @@ document.addEventListener("DOMContentLoaded", () => {
         'EDIT <span class="accent">PRODUCT</span>';
       document.getElementById("edit-id").value = p.id;
       document.getElementById("p-name").value = p.name;
+      document.getElementById("p-description").value = p.description || "";
       renderCategoryOptions(selectedCategoryId);
       document.getElementById("p-price").value = p.price;
 
@@ -2181,15 +2933,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const productFilterBar = document.getElementById("product-filter-bar");
-  if (productFilterBar) {
-    productFilterBar.addEventListener("click", (e) => {
-      const button = e.target.closest(".filter-btn");
-      if (!button) return;
-      updateSelectedProductCategory(button.dataset.categoryId);
-    });
-  }
-
   if (productForm) {
     productForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -2200,6 +2943,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 1. Gather Data & Validate
       const editId = document.getElementById("edit-id").value;
       const pName = document.getElementById("p-name").value.trim();
+      const pDescription = document.getElementById("p-description").value.trim();
       const pCategory = document.getElementById("p-category").value;
       const pPrice = parseInt(document.getElementById("p-price").value);
       const pUrl = urlInput.value.trim();
@@ -2242,6 +2986,7 @@ document.addEventListener("DOMContentLoaded", () => {
           categoryId: pCategory === "uncategorized" ? null : pCategory,
           price: pPrice,
           img: finalImgUrl,
+          description: pDescription,
         };
         console.log("[SAVE_START]", productData);
 
@@ -2363,7 +3108,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const href = link.getAttribute("href");
       if (!href || href.length <= 1) return;
       e.preventDefault();
-      const view = href.substring(1);
+      const [view, queryString] = href.substring(1).split("?");
+      const searchParams = new URLSearchParams(queryString || "");
+      const search = searchParams.get("search") || "";
       viewingCart = view === "cart";
       if (view === "admin-gate" || href === "#admin-gate") {
         document.getElementById("admin-gate-modal").classList.add("active");
@@ -2375,6 +3122,9 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("admin-gate-modal").classList.add("active");
         return;
       }
+      if (search) {
+        updateSearchQuery(search);
+      }
       const homeSections = [
         "home",
         "features",
@@ -2384,14 +3134,43 @@ document.addEventListener("DOMContentLoaded", () => {
         "newsletter",
       ];
       if (homeSections.includes(view)) {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + "#home",
+        );
         showView("home");
         const el = document.getElementById(view);
         if (el) window.scrollTo({ top: el.offsetTop - 70, behavior: "smooth" });
-      } else if (view === "shop") showView("shop");
-      else if (view === "reviews") showView("reviews");
-      else if (view === "cart") {
+      } else if (view === "shop") {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + "#shop",
+        );
+        showView("shop");
+      } else if (view === "reviews") {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + "#reviews",
+        );
+        showView("reviews");
+      } else if (view === "cart") {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + "#cart",
+        );
         showView("cart");
         renderCart();
+      } else if (view === "wishlist") {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + "#wishlist",
+        );
+        showView("wishlist");
       }
     });
   });
@@ -2430,7 +3209,182 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 7. CHECKOUT LOGIC
+  // ===== PRODUCT VIEW PAGE RENDERING =====
+  const renderProductPage = (productId) => {
+    const container = document.getElementById("product-view-layout");
+    if (!container) return;
+
+    // Find product from state or from DOM data (for non-Firestore products)
+    let product = state.products.find((p) => p.id === productId);
+    
+    if (!product) {
+      // Try to find from dataset (featured products with data-attributes)
+      const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+      if (card) {
+        product = {
+          id: card.dataset.id,
+          name: card.dataset.name,
+          price: parseInt(card.dataset.price),
+          img: card.dataset.img,
+          category: card.dataset.category || "",
+        };
+      }
+    }
+
+    if (!product) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <i class="fa-solid fa-box-open" style="font-size: 3rem; color: var(--accent); opacity: 0.3; margin-bottom: 1.5rem; display: block;"></i>
+          <h2>PRODUCT <span class="accent">NOT FOUND</span></h2>
+          <p style="margin: 1rem 0 2rem;">This gear may have been discontinued or relocated.</p>
+          <a href="#shop" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> BACK TO CATALOG</a>
+        </div>
+      `;
+      return;
+    }
+
+    const categoryLabel = getCategoryLabel(product.categoryId, product.category) || "Essential";
+    const priceStr = product.price.toLocaleString();
+
+    container.innerHTML = `
+      <a href="#shop" class="product-view-back"><i class="fa-solid fa-arrow-left"></i> BACK TO CATALOG</a>
+      <div class="product-view-layout product-view">
+        <div class="product-view-image-wrapper">
+          <img src="${product.img}" alt="${product.name}" class="product-view-image" loading="lazy">
+        </div>
+        <div class="product-view-details">
+          <div>
+            <span class="product-view-brand">3DRIP</span>
+            <span class="product-view-category" style="margin-left: 1rem;">${categoryLabel}</span>
+          </div>
+          <h1 class="product-view-name">${product.name}</h1>
+          <div>
+            <div class="product-view-price">${priceStr} DZD</div>
+            <div class="product-view-price-label">Algerian Dinar — Tax Inclusive</div>
+          </div>
+          <div class="product-view-description">
+            <div class="product-view-description-label">About This Item</div>
+            <div class="product-view-description-text">${product.description || "Premium quality streetwear essential from the 3DRIP collection. Built for those who refuse to stay in the shadows. Each piece is crafted with precision and designed for the future."}</div>
+          </div>
+          <div class="product-view-qty">
+            <label class="product-view-qty-label" for="pv-qty">Quantity</label>
+            <div class="product-qty-controls">
+              <button class="qty-btn qty-minus" id="pv-qty-minus">−</button>
+              <div class="qty-display" id="pv-qty-display">1</div>
+              <button class="qty-btn qty-plus" id="pv-qty-plus">+</button>
+            </div>
+          </div>
+          <div class="product-view-actions">
+            <button class="btn btn-primary" id="pv-add-to-cart">
+              <i class="fa-solid fa-cart-plus"></i> ADD TO CART — ${priceStr} DZD
+            </button>
+            <button class="btn btn-outline buy-now-btn" id="pv-buy-now" style="border: 1px solid #a855f7 !important; color: #a855f7 !important;">
+              <i class="fa-solid fa-bolt"></i> BUY NOW
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Initialize quantity value (stored outside the DOM for reliability)
+    let currentQty = 1;
+    const qtyDisplay = document.getElementById("pv-qty-display");
+    const qtyMinus = document.getElementById("pv-qty-minus");
+    const qtyPlus = document.getElementById("pv-qty-plus");
+
+    // Quantity button handlers
+    if (qtyMinus) {
+      qtyMinus.addEventListener("click", () => {
+        if (currentQty > 1) {
+          currentQty--;
+          qtyDisplay.textContent = currentQty;
+        }
+      });
+    }
+
+    if (qtyPlus) {
+      qtyPlus.addEventListener("click", () => {
+        currentQty++;
+        qtyDisplay.textContent = currentQty;
+      });
+    }
+
+    // Wire up Add to Cart on product page
+    const addBtn = document.getElementById("pv-add-to-cart");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        const qty = currentQty;
+        addToCart(product, qty);
+        showToast(`ADDED TO BAG: ${product.name} x${qty}`);
+        // Animation feedback
+        addBtn.innerHTML = '<i class="fa-solid fa-check"></i> ADDED!';
+        addBtn.style.background = "white";
+        addBtn.style.color = "black";
+        addBtn.disabled = true;
+        setTimeout(() => {
+          addBtn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> ADD TO CART — ${priceStr} DZD';
+          addBtn.style.background = "";
+          addBtn.style.color = "";
+          addBtn.disabled = false;
+        }, 1500);
+      });
+    }
+
+    // Wire up Buy Now on product page
+    const buyBtn = document.getElementById("pv-buy-now");
+    if (buyBtn) {
+      buyBtn.addEventListener("click", () => {
+        const qty = currentQty;
+        openBuyNowCheckout(product, qty);
+      });
+    }
+  };
+
+  // ===== BUY NOW FLOW =====
+  let buyNowProduct = null;
+
+  const openBuyNowCheckout = (product, quantity = 1) => {
+    buyNowProduct = {
+      product: product,
+      quantity: quantity,
+    };
+
+    // Set checkout type to "buynow"
+    document.getElementById("checkout-type").value = "buynow";
+    document.getElementById("checkout-product-id").value = product.id;
+
+    // Show order summary
+    const summaryDiv = document.getElementById("checkout-order-summary");
+    const summaryItems = document.getElementById("checkout-summary-items");
+    const summaryTotal = document.getElementById("checkout-summary-total");
+    const total = product.price * quantity + 500;
+
+    summaryItems.innerHTML = `
+      <div class="checkout-summary-item">
+        <span class="item-name">${product.name} × ${quantity}</span>
+        <span class="item-price">${(product.price * quantity).toLocaleString()} DZD</span>
+      </div>
+      <div class="checkout-summary-item" style="opacity: 0.6; font-size: 0.8rem;">
+        <span>Delivery</span>
+        <span>500 DZD</span>
+      </div>
+    `;
+    summaryTotal.textContent = `${total.toLocaleString()} DZD`;
+    summaryDiv.style.display = "block";
+
+    // Hide order-success, show form
+    document.getElementById("order-success").classList.remove("active");
+    document.getElementById("order-form").style.display = "block";
+
+    // Prefill with product info in summary
+    const submitBtn = document.getElementById("checkout-submit-btn");
+    submitBtn.textContent = `BUY NOW — ${total.toLocaleString()} DZD`;
+
+    // Open modal
+    document.getElementById("checkout-modal").classList.add("active");
+  };
+
+  // 7. CHECKOUT LOGIC (enhanced)
   const orderForm = document.getElementById("order-form");
   const checkoutTrigger = document.querySelector(".checkout-trigger");
 
@@ -2539,6 +3493,10 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("YOUR BAG IS EMPTY.");
         return;
       }
+      // Reset to cart mode
+      document.getElementById("checkout-type").value = "cart";
+      document.getElementById("checkout-order-summary").style.display = "none";
+      document.getElementById("checkout-submit-btn").textContent = "CONFIRM ORDER";
       document.getElementById("checkout-modal").classList.add("active");
       document.getElementById("order-form").style.display = "block";
       document.getElementById("order-success").classList.remove("active");
@@ -2547,49 +3505,92 @@ document.addEventListener("DOMContentLoaded", () => {
   if (orderForm) {
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       console.log("[CHECKOUT_SUBMIT]");
-      const inputs = orderForm.querySelectorAll("input");
-      const customerName = inputs[0].value.trim();
-      const customerEmail = inputs[1].value.trim();
-      const customerAddress = orderForm.querySelector("textarea").value.trim();
 
-      console.log("[CHECKOUT_START]");
+      const checkoutType = document.getElementById("checkout-type").value;
+      const customerName = document.getElementById("checkout-name").value.trim();
+      const customerPhone = document.getElementById("checkout-phone").value.trim();
+      const customerWilaya = document.getElementById("checkout-wilaya").value.trim();
+      const customerCity = document.getElementById("checkout-city").value.trim();
+      const customerAddress = document.getElementById("checkout-address").value.trim();
+      const customerNotes = document.getElementById("checkout-notes").value.trim();
+
+      console.log("[CHECKOUT_START] type:", checkoutType);
 
       // Validation
-      if (cart.length === 0) {
-        showToast("YOUR BAG IS EMPTY.");
-        return;
-      }
-      if (!customerName || !customerEmail || !customerAddress) {
-        showToast("PLEASE COMPLETE ALL FIELDS.");
+      if (!customerName || !customerPhone || !customerWilaya || !customerCity || !customerAddress) {
+        showToast("PLEASE COMPLETE ALL REQUIRED FIELDS.");
         return;
       }
 
-      const total =
-        cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0) +
-        500;
+      const fullAddress = `${customerAddress}, ${customerCity}, ${customerWilaya}`;
+
+      let items = [];
+      let total = 0;
+
+      if (checkoutType === "buynow" && buyNowProduct) {
+        // Buy Now: purchase just this single product
+        const qty = buyNowProduct.quantity;
+        items = [{
+          id: buyNowProduct.product.id,
+          name: buyNowProduct.product.name,
+          price: buyNowProduct.product.price,
+          img: buyNowProduct.product.img,
+          quantity: qty,
+        }];
+        total = buyNowProduct.product.price * qty + 500;
+      } else {
+        // Cart checkout
+        if (cart.length === 0) {
+          showToast("YOUR BAG IS EMPTY.");
+          return;
+        }
+        items = [...cart];
+        total = cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0) + 500;
+      }
 
       const newOrder = {
         customer: {
           name: customerName,
-          email: customerEmail,
-          address: customerAddress,
+          phone: customerPhone,
+          address: fullAddress,
+          wilaya: customerWilaya,
+          city: customerCity,
+          notes: customerNotes,
         },
-        items: cart,
+        items: items,
         total: total,
         status: "PENDING",
       };
+
+      const submitBtn = document.getElementById("checkout-submit-btn");
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PROCESSING...';
 
       try {
         await DB.saveOrder(newOrder);
         orderForm.style.display = "none";
         document.getElementById("order-success").classList.add("active");
-        cart = [];
-        updateCartUI();
+
+        // Clear cart only on cart checkout
+        if (checkoutType !== "buynow") {
+          cart = [];
+          updateCartUI();
+        }
+
+        // Reset buy now state
+        buyNowProduct = null;
+        document.getElementById("checkout-type").value = "cart";
+        document.getElementById("checkout-order-summary").style.display = "none";
+
+        showToast("ORDER DEPLOYED SUCCESSFULLY!");
       } catch (err) {
         console.error("[CHECKOUT_FAILED]", err);
         showToast("ORDER FAILED: UNABLE TO CONTACT SYSTEM.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
       }
     });
   }
@@ -2684,8 +3685,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Final safety: release loader after 4 seconds regardless
   setTimeout(hideLoader, 4000);
 
-  // Also release loader once products are fetched or on home view
-  showView("home");
+  // Handle initial navigation state and hash query search
+  handleHashNavigation();
+  window.addEventListener("hashchange", handleHashNavigation);
   console.log("[SYSTEM] INITIALIZATION SEQUENCE TERMINATED.");
 
   // Slight delay for smooth entrance
@@ -2693,4 +3695,164 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // START LISTENERS LAST
   startListeners();
+
+  // ===== MOBILE FILTER & SORT BOTTOM SHEETS =====
+  const mobileFilterBtn = document.getElementById("mobile-filter-btn");
+  const mobileSortBtn = document.getElementById("mobile-sort-btn");
+  const mobileFilterSheet = document.getElementById("mobile-filter-sheet");
+  const mobileSortSheet = document.getElementById("mobile-sort-sheet");
+  const closeFilterSheet = document.getElementById("close-filter-sheet");
+  const closeSortSheet = document.getElementById("close-sort-sheet");
+  const filterSheetOverlay = document.getElementById("filter-sheet-overlay");
+  const sortSheetOverlay = document.getElementById("sort-sheet-overlay");
+  const applyFiltersBtn = document.getElementById("apply-mobile-filters");
+  const mobilePriceSlider = document.getElementById("mobile-price-slider");
+  const mobilePriceValue = document.getElementById("mobile-price-value");
+  const mobileCategoriesList = document.getElementById("mobile-categories-list");
+
+  // Helper function to open bottom sheet
+  const openBottomSheet = (sheet) => {
+    sheet.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  };
+
+  // Helper function to close bottom sheet
+  const closeBottomSheet = (sheet) => {
+    sheet.classList.add("closing");
+    setTimeout(() => {
+      sheet.setAttribute("aria-hidden", "true");
+      sheet.classList.remove("closing");
+      document.body.style.overflow = "";
+    }, 300);
+  };
+
+  // Open/Close Filter Sheet
+  if (mobileFilterBtn) {
+    mobileFilterBtn.addEventListener("click", () => {
+      openBottomSheet(mobileFilterSheet);
+    });
+  }
+
+  if (closeFilterSheet) {
+    closeFilterSheet.addEventListener("click", () => {
+      closeBottomSheet(mobileFilterSheet);
+    });
+  }
+
+  if (filterSheetOverlay) {
+    filterSheetOverlay.addEventListener("click", () => {
+      closeBottomSheet(mobileFilterSheet);
+    });
+  }
+
+  // Open/Close Sort Sheet
+  if (mobileSortBtn) {
+    mobileSortBtn.addEventListener("click", () => {
+      openBottomSheet(mobileSortSheet);
+    });
+  }
+
+  if (closeSortSheet) {
+    closeSortSheet.addEventListener("click", () => {
+      closeBottomSheet(mobileSortSheet);
+    });
+  }
+
+  if (sortSheetOverlay) {
+    sortSheetOverlay.addEventListener("click", () => {
+      closeBottomSheet(mobileSortSheet);
+    });
+  }
+
+  // Populate categories dynamically in mobile filter
+  const populateMobileCategories = () => {
+    if (!mobileCategoriesList) return;
+    
+    const categories = state.categories || [];
+    mobileCategoriesList.innerHTML = "";
+    
+    // Add "All" option
+    const allBtn = document.createElement("button");
+    allBtn.type = "button";
+    allBtn.className = "mobile-filter-item" + (selectedProductCategory === "all" ? " active" : "");
+    allBtn.textContent = "All";
+    allBtn.dataset.category = "all";
+    allBtn.addEventListener("click", () => {
+      document.querySelectorAll(".mobile-filter-item").forEach(item => item.classList.remove("active"));
+      allBtn.classList.add("active");
+      selectedProductCategory = "all";
+      renderStore();
+      closeBottomSheet(mobileFilterSheet);
+    });
+    mobileCategoriesList.appendChild(allBtn);
+    
+    // Add category options
+    categories.forEach((cat) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mobile-filter-item" + (selectedProductCategory === cat.id ? " active" : "");
+      btn.textContent = cat.name;
+      btn.dataset.category = cat.id;
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".mobile-filter-item").forEach(item => item.classList.remove("active"));
+        btn.classList.add("active");
+        selectedProductCategory = cat.id;
+        renderStore();
+        closeBottomSheet(mobileFilterSheet);
+      });
+      mobileCategoriesList.appendChild(btn);
+    });
+  };
+
+  // Handle price slider update
+  if (mobilePriceSlider && mobilePriceValue) {
+    mobilePriceSlider.addEventListener("input", (e) => {
+      const value = parseInt(e.target.value);
+      mobilePriceValue.textContent = new Intl.NumberFormat("fr-DZ").format(value);
+      maxPrice = value;
+    });
+  }
+
+  // Apply filters button
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener("click", () => {
+      renderStore();
+      closeBottomSheet(mobileFilterSheet);
+    });
+  }
+
+  // Handle mobile sort options
+  const mobileSortOptions = document.querySelectorAll(".mobile-sort-option");
+  mobileSortOptions.forEach((option) => {
+    option.addEventListener("click", () => {
+      const sortValue = option.dataset.sort;
+      
+      // Update active state
+      mobileSortOptions.forEach(opt => opt.classList.remove("active"));
+      option.classList.add("active");
+      
+      // Update sort select in desktop
+      const desktopSortSelect = document.getElementById("sort-select");
+      if (desktopSortSelect) {
+        desktopSortSelect.value = sortValue;
+      }
+      
+      // Update current sort
+      currentSort = sortValue;
+      renderStore();
+      closeBottomSheet(mobileSortSheet);
+    });
+  });
+
+  // Initialize mobile categories on load
+  populateMobileCategories();
+
+  // Re-populate when categories are created/updated
+  const originalCategoryUpdate = window.refreshAdminCategories;
+  if (originalCategoryUpdate) {
+    window.refreshAdminCategories = function(...args) {
+      originalCategoryUpdate.apply(this, args);
+      populateMobileCategories();
+    };
+  }
 });
