@@ -1,5 +1,5 @@
 /**
- * 3DRIP | LUXURY STREETWEAR 2026
+ * ZetSpace | LUXURY STREETWEAR 2026
  * MAIN SCRIPT
  */
 
@@ -22,6 +22,7 @@ import {
   deleteDoc,
   onSnapshot,
   query,
+  where,
   orderBy,
   serverTimestamp,
   getDocFromServer,
@@ -57,8 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById('theme-toggle');
   const STORAGE_KEY = '3drip-theme';
   
-  // Apply theme immediately to prevent flash
-  const savedTheme = localStorage.getItem(STORAGE_KEY) || 'dark';
+  // Apply theme immediately to prevent flash - default to light
+  const savedTheme = localStorage.getItem(STORAGE_KEY) || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   
   // Update toggle icon to match current theme
@@ -76,22 +77,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   updateThemeIcon(savedTheme);
   
-  // Toggle theme with smooth animation
+  // Toggle theme
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    
-    // Add animation class
-    if (themeToggle) themeToggle.classList.add('animating');
-    
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem(STORAGE_KEY, newTheme);
     updateThemeIcon(newTheme);
-    
-    // Remove animation class after animation completes
-    setTimeout(() => {
-      if (themeToggle) themeToggle.classList.remove('animating');
-    }, 400);
   }
   
   if (themeToggle) {
@@ -103,17 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (mobileThemeBtn) {
     mobileThemeBtn.addEventListener('click', toggleTheme);
   }
-  
-  // Also listen for system preference changes (optional enhancement)
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-  prefersDark.addEventListener('change', (e) => {
-    // Only apply if user hasn't manually set a preference
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      const newTheme = e.matches ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      updateThemeIcon(newTheme);
-    }
-  });
 
   // Operation Types for error handling
   const OperationType = {
@@ -184,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     trash: [],
     reviews: [],
     categories: [],
+    reviewsEnabled: true, // Global setting for reviews visibility
   };
 
   // Tracking active Firestore listeners for clean re-init
@@ -194,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     trash: null,
     reviews: null,
     categories: null,
+    settings: null,
   };
 
   // Replace DB helper with Firestore logic
@@ -362,62 +345,34 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
     },
+    setReviewsEnabled: async (enabled) => {
+      try {
+        const settingsRef = doc(db, "settings", "reviews");
+        await setDoc(settingsRef, { enabled }, { merge: true });
+      } catch (error) {
+        handleFirestoreError(error, OperationType.WRITE, "settings/reviews");
+      }
+    },
     deleteAllLogs: async () => {
       try {
-        const batch = [];
-        state.logs.forEach((log) => {
-          batch.push(deleteDoc(doc(db, "logs", log.id)));
-        });
-        await Promise.all(batch);
+        // Get current log IDs
+        const logsToDelete = [...state.logs];
+        
+        // Delete each log document from Firestore.
+        // The existing onSnapshot listener will automatically fire
+        // with the updated snapshot, keeping state.logs in sync.
+        const deleteOps = logsToDelete
+          .filter(log => log && log.id)
+          .map(log => deleteDoc(doc(db, "logs", log.id)));
+        await Promise.all(deleteOps);
+        
+        showToast("ALL SYSTEM LOGS PURGED.");
       } catch (error) {
         handleFirestoreError(error, OperationType.DELETE, "logs/all");
+        showToast("ERROR: LOG DELETION FAILED.");
       }
     },
   };
-
-  const isMobileCursor =
-    window.matchMedia("(max-width: 768px)").matches ||
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0;
-
-  if (isMobileCursor) {
-    document.body.classList.add("no-custom-cursor");
-  }
-
-  // 1. CUSTOM CURSOR
-  const cursor = document.querySelector(".cursor");
-  const cursorGlow = document.querySelector(".cursor-glow");
-
-  if (!isMobileCursor && cursor && cursorGlow) {
-    document.addEventListener("mousemove", (e) => {
-      cursor.style.left = e.clientX + "px";
-      cursor.style.top = e.clientY + "px";
-      setTimeout(() => {
-        cursorGlow.style.left = e.clientX - 16 + "px";
-        cursorGlow.style.top = e.clientY - 16 + "px";
-      }, 50);
-    });
-
-    const updateCursorHover = () => {
-      const clickables = document.querySelectorAll(
-        "a, button, .product-card, .insta-item, [onclick]",
-      );
-      clickables.forEach((el) => {
-        el.addEventListener("mouseenter", () => {
-          cursor.style.transform = "scale(4)";
-          cursor.style.background = "transparent";
-          cursor.style.border = "1px solid white";
-        });
-        el.addEventListener("mouseleave", () => {
-          cursor.style.transform = "scale(1)";
-          cursor.style.background = "white";
-          cursor.style.border = "none";
-        });
-      });
-    };
-    updateCursorHover();
-    window.addEventListener("viewChanged", updateCursorHover);
-  }
 
   // 1. BACKGROUND CANVAS ANIMATION
   const canvas = document.getElementById("bg-canvas");
@@ -623,11 +578,12 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("[SYSTEM] SYNCHRONIZING REALTIME STREAMS...");
 
     // Clear existing listeners to prevent leaks/duplicates
+    // NOTE: reviews listener is intentionally NOT cleared here
+    // to ensure reviews load immediately and independently of auth state.
     if (activeListeners.products) activeListeners.products();
     if (activeListeners.orders) activeListeners.orders();
     if (activeListeners.logs) activeListeners.logs();
     if (activeListeners.trash) activeListeners.trash();
-    if (activeListeners.reviews) activeListeners.reviews();
 
     // Products Listener (Public)
     activeListeners.products = onSnapshot(
@@ -706,23 +662,44 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Reviews Listener (Mixed - Admin can see all, Public see published)
-    const reviewsRef = collection(db, "reviews");
-    const reviewsQuery = query(reviewsRef, orderBy("createdAt", "desc"));
+    // Only create if not already active (preserves the auth-independent init)
+// Remove old listener if exists
+if (activeListeners.reviews) {
+  activeListeners.reviews();
+}
 
-    activeListeners.reviews = onSnapshot(
-      reviewsQuery,
-      (snapshot) => {
-        state.reviews = snapshot.docs.map((d) => ({ ...d.data(), id: d.id }));
-        renderPublicReviews();
-        if (Firewall.isAdmin()) renderAdminReviews();
-      },
-      (err) => {
-        console.warn("[SYSTEM] REVIEWS_LISTENER_ERR:", err.message);
-        handleFirestoreError(err, OperationType.LIST, "reviews");
-      },
+// Create reference ONCE
+const reviewsRef = collection(db, "reviews");
+
+// Build query based on role
+const reviewsQuery = Firewall.isAdmin()
+  ? query(reviewsRef, orderBy("createdAt", "desc"))
+  : query(
+      reviewsRef,
+      where("status", "==", "PUBLISHED"),
+      orderBy("createdAt", "desc")
     );
 
+// Attach listener
+activeListeners.reviews = onSnapshot(
+  reviewsQuery,
+  (snapshot) => {
+    state.reviews = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // Render both safely
+    renderPublicReviews?.();
+        renderAdminReviews?.();
+  },
+  (error) => {
+    console.error("Reviews listener error:", error);
+  }
+);
+
     // Categories Listener
+    if (activeListeners.categories) activeListeners.categories();
     activeListeners.categories = onSnapshot(
       collection(db, "categories"),
       (snapshot) => {
@@ -733,14 +710,9 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCategoryOptions();
         renderCategoryFilterBar();
         renderStore();
-        populateMobileCategories(); // ← Ensure mobile filter updates with live categories
-        if (Firewall.isAdmin()) {
-          renderAdminCategories();
-          // After first load of categories, ensure defaults exist
-          if (state.categories.length === 0) {
-            ensureDefaultCategories();
-          }
-        }
+if (Firewall.isAdmin()) {
+  renderAdminCategories();
+}
       },
       (err) => {
         console.warn("[SYSTEM] CATEGORIES_LISTENER_ERR:", err.message);
@@ -748,6 +720,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     );
   };
+
 
   const mobileMenu = document.getElementById("mobile-menu");
   const mobileToggle = document.getElementById("mobile-toggle");
@@ -802,6 +775,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const toggleSearch = () => {
+      // On mobile, the fullscreen overlay handles search - don't expand inline
+      if (window.innerWidth <= 768) return;
       setSearchExpanded(!searchInputWrapper.classList.contains("active"));
     };
 
@@ -884,7 +859,6 @@ document.addEventListener("DOMContentLoaded", () => {
       renderAdmin();
       renderLogs();
       renderTrash();
-      renderAdminReviews();
     }
     syncWishlistUI();
   };
@@ -953,7 +927,10 @@ document.addEventListener("DOMContentLoaded", () => {
         productName.includes(normalizedQuery) ||
         categoryName.includes(normalizedQuery);
 
-      return matchesCategory && matchesSearch;
+      const productPrice = p.price || 0;
+      const matchesPrice = productPrice >= minPrice && productPrice <= maxPrice;
+
+      return matchesCategory && matchesSearch && matchesPrice;
     });
 
     const isListView = shopViewMode === "list";
@@ -970,10 +947,10 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
               <div class="product-info">
                 <div class="product-info-left">
-                  <div class="product-brand">${getCategoryLabel(p.categoryId, p.category) || "3DRIP"}</div>
+                  <div class="product-brand">${getCategoryLabel(p.categoryId, p.category) || "ZetSpace"}</div>
                   <div class="product-name">${p.name}</div>
                   <div class="product-category-pill">${getCategoryLabel(p.categoryId, p.category) || "Essential"}</div>
-                  <div class="product-desc">Premium quality streetwear essential from the 3DRIP collection.</div>
+                  <div class="product-desc">Premium quality streetwear essential from the ZetSpace collection.</div>
                 </div>
                 <div class="product-info-center">
                   <div class="product-price">${p.price.toLocaleString()} DA</div>
@@ -998,7 +975,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </button>
               </div>
               <div class="product-info">
-                <div class="product-brand">${getCategoryLabel(p.categoryId, p.category) || "3DRIP"}</div>
+                <div class="product-brand">${getCategoryLabel(p.categoryId, p.category) || "ZetSpace"}</div>
                 <div class="product-name">${p.name}</div>
                 <div class="product-price">${p.price.toLocaleString()} DZD</div>
                 <div class="product-card-btns">
@@ -1017,16 +994,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Apply sorting
     let sortedProducts = filteredProducts.slice();
     switch (shopSortBy) {
-      case "price-asc":
+      case "price-low":
         sortedProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
         break;
-      case "price-desc":
+      case "price-high":
         sortedProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
         break;
       case "newest":
         sortedProducts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         break;
-      case "best-selling":
+      case "popularity":
         sortedProducts.sort((a, b) => (b.sold || 0) - (a.sold || 0));
         break;
       default:
@@ -1043,8 +1020,12 @@ document.addEventListener("DOMContentLoaded", () => {
           : '<p class="empty-msg">NO PRODUCTS FOUND FOR THIS CATEGORY.</p>';
     }
 
-    if (featuredGrid)
-      featuredGrid.innerHTML = products.slice(0, 3).map(productToHTML).join("");
+    if (featuredGrid) {
+      const recommendedProducts = products.filter(p => p.isRecommended === true);
+      featuredGrid.innerHTML = recommendedProducts.length > 0
+        ? recommendedProducts.map(productToHTML).join("")
+        : '<p class="empty-msg">NO RECOMMENDED PRODUCTS YET. ADMIN CAN MARK THEM IN THE DASHBOARD.</p>';
+    }
   };
 
   let selectedProductCategory = "all";
@@ -1052,6 +1033,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let shopSortBy = "featured";
   let shopViewMode = "grid";
   let homeSearchDraft = "";
+  let maxPrice = 50000;
+  let minPrice = 0;
 
   const escapeInputValue = (value) =>
     String(value || "")
@@ -1692,11 +1675,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const badge = document.getElementById("wishlist-badge");
     if (badge) badge.textContent = wishlist.length;
     syncWishlistUI();
-    // Re-render wishlist page if currently viewing it
-    const wishlistSection = document.getElementById("wishlist");
-    if (wishlistSection && wishlistSection.style.display !== "none") {
-      renderWishlist();
-    }
+    renderWishlist();
   };
 
   const isInWishlist = (productId) =>
@@ -1783,7 +1762,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </button>
           </div>
           <div class="product-info">
-            <div class="product-brand">${item.category || "3DRIP"}</div>
+            <div class="product-brand">${item.category || "ZetSpace"}</div>
             <div class="product-name">${item.name}</div>
             <div class="product-price">${(item.price || 0).toLocaleString()} DZD</div>
             <button class="add-to-cart-btn wishlist-add-cart" data-id="${item.id}">
@@ -1879,6 +1858,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAdminProducts();
     renderAdminOrders();
     renderAdminCategories();
+    renderAdminReviews();
   };
 
   const renderAdminProducts = () => {
@@ -1889,26 +1869,151 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (products.length === 0) {
       adminProductList.innerHTML =
-        '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">NO PRODUCTS IN DATABASE</td></tr>';
+        '<tr><td colspan="6" style="text-align:center; padding: 2rem; opacity: 0.5;">NO PRODUCTS IN DATABASE</td></tr>';
     } else {
       adminProductList.innerHTML = products
         .map(
-          (p) => `
+          (p) => {
+            const isRecommended = p.isRecommended === true;
+            return `
                 <tr id="admin-row-${p.id}" class="admin-row-trigger" data-id="${p.id}" data-name="${p.name}">
-                    <td><img src="${p.img}" class="admin-img-thumb" alt=""></td>
-                    <td>${p.name}</td>
-                    <td>${getCategoryLabel(p.categoryId, p.category)}</td>
-                    <td>${p.price.toLocaleString()} DZD</td>
-                    <td>
+                    <td data-label="IMG"><img src="${p.img}" class="admin-img-thumb" alt=""></td>
+                    <td data-label="NAME">${p.name}</td>
+                    <td data-label="CATEGORY">${getCategoryLabel(p.categoryId, p.category)}</td>
+                    <td data-label="PRICE">${p.price.toLocaleString()} DZD</td>
+                    <td data-label="RECOMMENDED" class="desktop-only">
+                        <label class="recommended-toggle" onclick="event.stopPropagation();">
+                            <input type="checkbox" ${isRecommended ? 'checked' : ''} onchange="event.stopPropagation(); window.__toggleRecommended('${p.id}', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </td>
+                    <td data-label="ACTIONS">
                         <div class="desktop-actions">
                             <button class="action-btn edit-btn" onclick="event.stopPropagation(); openEditProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
                             <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteProduct('${p.id}')"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
-            `,
+            `;
+          },
         )
         .join("");
+    }
+  };
+
+  // Global toggle for Recommended status (updates Firestore directly)
+  window.__toggleRecommended = async (productId, isRecommended) => {
+    if (!Firewall.isAdmin()) return;
+    try {
+      // Use direct Firestore updateDoc to bypass DB.updateProduct's image validation
+      await updateDoc(doc(db, "products", productId), { isRecommended });
+      showToast(isRecommended ? "PRODUCT MARKED AS RECOMMENDED." : "PRODUCT REMOVED FROM RECOMMENDED.");
+    } catch (err) {
+      console.error("[RECOMMENDED_TOGGLE_ERROR]", err);
+      showToast("FAILED TO UPDATE RECOMMENDED STATUS.");
+    }
+  };
+
+  const renderAdminReviews = () => {
+    if (!Firewall.isAdmin()) return;
+    const reviews = state.reviews || [];
+    const reviewList = document.getElementById("admin-reviews-list");
+    const countBadge = document.getElementById("reviews-count-badge");
+
+    if (countBadge) {
+      countBadge.textContent = `${reviews.length} REVIEW${reviews.length !== 1 ? 'S' : ''}`;
+    }
+
+    if (!reviewList) return;
+
+    if (reviews.length === 0) {
+      reviewList.innerHTML =
+        '<tr><td colspan="7" style="text-align:center; padding: 2rem; opacity: 0.5;">NO REVIEWS SUBMITTED YET.</td></tr>';
+      return;
+    }
+
+    const getRelatedProductName = (review) => {
+      if (review.productId && state.products) {
+        const prod = state.products.find((p) => p.id === review.productId);
+        if (prod) return prod.name;
+      }
+      return review.productName || "—";
+    };
+
+      reviewList.innerHTML = [...reviews]
+      .sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      })
+      .map((r) => {
+        const status = (r.status || "PENDING").toUpperCase();
+        const isBest = r.isBest === true;
+        const formattedDate = r.createdAt
+          ? new Date(r.createdAt).toLocaleDateString()
+          : "N/A";
+        const rating = r.rating || 0;
+        const starsHTML = Array(5)
+          .fill(0)
+          .map(
+            (_, i) =>
+              `<i class="fa-solid fa-star" style="color: ${i < rating ? "#ffcc00" : "rgba(255,255,255,0.15)"}; font-size: 0.65rem;"></i>`,
+          )
+          .join("");
+
+        return `
+              <tr>
+                <td data-label="USER"><strong>${r.name || "ANONYMOUS"}</strong></td>
+                <td data-label="PRODUCT">${getRelatedProductName(r)}</td>
+                <td data-label="RATING"><div class="review-stars">${starsHTML}</div></td>
+                <td data-label="REVIEW"><div class="review-text-cell" title="${escapeInputValue(r.message || "")}">${r.message ? r.message.substring(0, 60) + (r.message.length > 60 ? "..." : "") : "—"}</div></td>
+                <td data-label="DATE">${formattedDate}</td>
+                <td data-label="STATUS"><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
+                <td data-label="ACTIONS">
+                  <div class="admin-review-actions">
+                    ${status !== "PUBLISHED" ? `<button class="action-btn review-publish-btn" onclick="event.stopPropagation(); window.__adminApproveReview('${r.id}')" title="Approve & Publish"><i class="fa-solid fa-check"></i></button>` : ""}
+                    ${status === "PUBLISHED" ? `<button class="action-btn review-unpublish-btn" onclick="event.stopPropagation(); window.__adminUnpublishReview('${r.id}')" title="Unpublish"><i class="fa-solid fa-eye-slash"></i></button>` : ""}
+                    <button class="action-btn delete-btn" onclick="event.stopPropagation(); window.__adminDeleteReview('${r.id}')" title="Delete Review"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+              </tr>
+            `;
+      })
+      .join("");
+  };
+
+  // Wire up review action buttons globally
+  window.__adminApproveReview = async (id) => {
+    if (!Firewall.isAdmin()) return;
+    try {
+      await DB.updateReviewStatus(id, "PUBLISHED");
+      showToast("REVIEW APPROVED & PUBLISHED.");
+    } catch (err) {
+      console.error("REVIEW APPROVE ERROR:", err);
+      showToast("FAILED TO APPROVE REVIEW.");
+    }
+  };
+
+  window.__adminUnpublishReview = async (id) => {
+    if (!Firewall.isAdmin()) return;
+    try {
+      await DB.updateReviewStatus(id, "PENDING");
+      showToast("REVIEW UNPUBLISHED.");
+    } catch (err) {
+      console.error("REVIEW UNPUBLISH ERROR:", err);
+      showToast("FAILED TO UNPUBLISH REVIEW.");
+    }
+  };
+
+  window.__adminDeleteReview = async (id) => {
+    if (!Firewall.isAdmin()) return;
+    if (!confirm("PERMANENTLY DELETE THIS REVIEW?")) return;
+    try {
+      await DB.deleteReview(id);
+      showToast("REVIEW DELETED.");
+    } catch (err) {
+      console.error("REVIEW DELETE ERROR:", err);
+      showToast("FAILED TO DELETE REVIEW.");
     }
   };
 
@@ -2098,91 +2203,42 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast(`ORDER STATUS UPDATED: ${status}`);
   };
 
-  const renderAdminReviews = () => {
-    if (!Firewall.isAdmin()) return;
-    const reviews = state.reviews;
-    const adminReviewList = document.getElementById("admin-review-list");
-    if (adminReviewList) {
-      if (reviews.length === 0) {
-        adminReviewList.innerHTML =
-          '<tr><td colspan="5" style="text-align:center; padding: 2rem; opacity: 0.5;">NO REVIEWS LOGGED.</td></tr>';
-      } else {
-        adminReviewList.innerHTML = [...reviews]
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .map(
-            (r) => `
-                    <tr class="review-row-trigger" 
-                        data-id="${r.id}" 
-                        data-name="${r.name}" 
-                        data-rating="${r.rating || 0}" 
-                        data-message="${r.message.replace(/"/g, "&quot;")}" 
-                        data-best="${!!r.isBest}">
-                        <td>
-                            <strong>${r.name}</strong><br>
-                            <small>${new Date(r.createdAt || 0).toLocaleDateString()}</small>
-                        </td>
-                        <td>
-                            <div class="stars">
-                                ${Array(5)
-                                  .fill(0)
-                                  .map(
-                                    (_, i) =>
-                                      `<i class="fa-solid fa-star" style="color: ${i < (r.rating || 0) ? "#ffcc00" : "rgba(255,255,255,0.1)"};"></i>`,
-                                  )
-                                  .join("")}
-                            </div>
-                        </td>
-                        <td><p style="font-size: 0.75rem; max-width: 300px; white-space: normal;">${r.message}</p></td>
-                        <td>
-                            <select class="admin-select-status" onchange="updateReviewStatus('${r.id}', this.value)">
-                                <option value="PENDING" ${r.status === "PENDING" ? "selected" : ""}>PENDING</option>
-                                <option value="PUBLISHED" ${r.status === "PUBLISHED" ? "selected" : ""}>PUBLISHED</option>
-                                <option value="REJECTED" ${r.status === "REJECTED" ? "selected" : ""}>REJECTED</option>
-                            </select>
-                        </td>
-                        <td>
-                            <button class="action-btn" onclick="event.stopPropagation(); toggleBestReview('${r.id}', ${!!r.isBest})" style="color: ${r.isBest ? "#ffcc00" : "rgba(255,255,255,0.2)"};">
-                                <i class="fa-solid fa-star"></i>
-                            </button>
-                        </td>
-                        <td>
-                            <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteReview('${r.id}')"><i class="fa-solid fa-trash-can"></i></button>
-                        </td>
-                    </tr>
-                `,
-          )
-          .join("");
-      }
-    }
-  };
-
-  window.toggleBestReview = async (id, current) => {
-    if (!Firewall.isAdmin()) return;
-    await DB.toggleBestReview(id, current);
-    showToast(
-      current ? "REMOVED FROM BEST REVIEWS." : "PROMOTED TO BEST REVIEWS.",
-    );
-  };
-
-  window.updateReviewStatus = async (id, status) => {
-    if (!Firewall.isAdmin()) return;
-    await DB.updateReviewStatus(id, status);
-    showToast(`REVIEW STATUS UPDATED: ${status}`);
-  };
-
-  window.deleteReview = async (id) => {
-    if (!Firewall.isAdmin()) return;
-    if (confirm("PERMANENTLY ERASE THIS TRANSMISSION FROM THE ARCHIVE?")) {
-      await DB.deleteReview(id);
-      showToast("REVIEW PURGED.");
-    }
-  };
-
   const renderPublicReviews = () => {
+    // Prevent rendering public reviews/testimonials when admin dashboard is active
+    const adminSection = document.getElementById("admin");
+    const isAdminActive = adminSection && adminSection.style.display === "block";
     const reviews = state.reviews.filter((r) => r.status === "PUBLISHED");
     const bestReviews = reviews.filter((r) => r.isBest === true);
     const publicList = document.getElementById("public-reviews-list");
     const testimonialTrack = document.querySelector(".testimonial-track");
+    const reviewsSection = document.getElementById("reviews");
+    const testimonialsSection = document.getElementById("testimonials");
+
+    // Hide/unhide reviews and testimonials sections based on reviewsEnabled
+    if (reviewsSection) {
+      // Only hide if we are NOT currently on the #reviews view (direct URL access still allowed for admin)
+      // Hide the section content when disabled
+      if (!state.reviewsEnabled) {
+        // When disabled on public homepage: hide the content visually
+        if (publicList) {
+          publicList.innerHTML = '<p class="empty-msg" style="opacity:0.4;">REVIEWS SECTION IS CURRENTLY DISABLED BY ADMIN.</p>';
+        }
+        if (testimonialsSection) {
+          testimonialsSection.style.display = "none";
+        }
+        return; // Don't render reviews content
+      } else {
+        // Only restore testimonials visibility if NOT in admin view
+        if (!isAdminActive && testimonialsSection) {
+          testimonialsSection.style.display = "";
+        }
+      }
+    }
+
+    // Skip rendering reviews content if admin is active (prevents overriding display:none)
+    if (isAdminActive) {
+      return;
+    }
 
     const reviewToHTML = (r) => `
             <div class="testimonial-card">
@@ -2428,85 +2484,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentTrashId) {
         window.permanentDelete(currentTrashId);
         trashActionModal.classList.remove("active");
-      }
-    });
-  }
-
-  const reviewActionModal = document.getElementById("review-action-modal");
-  const mobileReviewName = document.getElementById("m-reviewer-name");
-  const mobileReviewStars = document.getElementById("m-review-stars");
-  const mobileReviewMessage = document.getElementById("m-review-message");
-  const mobileBestReviewBtn = document.getElementById("mobile-best-review-btn");
-  const mobileDeleteReviewBtn = document.getElementById(
-    "mobile-delete-review-btn",
-  );
-  const reviewActionClose = document.getElementById("review-action-close");
-  let currentMobileReviewId = null;
-  let currentMobileReviewBest = false;
-
-  const adminReviewList = document.getElementById("admin-review-list");
-  if (adminReviewList) {
-    adminReviewList.addEventListener("click", (e) => {
-      if (window.innerWidth > 900) return;
-      const row = e.target.closest(".review-row-trigger");
-      if (row) {
-        currentMobileReviewId = row.dataset.id;
-        currentMobileReviewBest = row.dataset.best === "true";
-
-        if (mobileReviewName) mobileReviewName.textContent = row.dataset.name;
-        if (mobileReviewMessage)
-          mobileReviewMessage.innerHTML = row.dataset.message;
-
-        if (mobileReviewStars) {
-          const rating = parseInt(row.dataset.rating);
-          mobileReviewStars.innerHTML = Array(5)
-            .fill(0)
-            .map(
-              (_, i) =>
-                `<i class="fa-solid fa-star" style="color: ${i < rating ? "#ffcc00" : "rgba(255,255,255,0.1)"};"></i>`,
-            )
-            .join("");
-        }
-
-        if (mobileBestReviewBtn) {
-          mobileBestReviewBtn.style.background = currentMobileReviewBest
-            ? "rgba(255, 204, 0, 0.1)"
-            : "";
-          mobileBestReviewBtn.style.color = currentMobileReviewBest
-            ? "#ffcc00"
-            : "";
-          mobileBestReviewBtn.style.borderColor = currentMobileReviewBest
-            ? "#ffcc00"
-            : "";
-          mobileBestReviewBtn.innerHTML = currentMobileReviewBest
-            ? '<i class="fa-solid fa-star"></i> BEST: ACTIVE'
-            : '<i class="fa-solid fa-award"></i> MARK AS BEST';
-        }
-
-        if (reviewActionModal) reviewActionModal.classList.add("active");
-      }
-    });
-  }
-
-  if (reviewActionClose)
-    reviewActionClose.addEventListener("click", () =>
-      reviewActionModal.classList.remove("active"),
-    );
-
-  if (mobileBestReviewBtn) {
-    mobileBestReviewBtn.addEventListener("click", () => {
-      if (currentMobileReviewId) {
-        window.toggleBestReview(currentMobileReviewId, currentMobileReviewBest);
-        reviewActionModal.classList.remove("active");
-      }
-    });
-  }
-
-  if (mobileDeleteReviewBtn) {
-    mobileDeleteReviewBtn.addEventListener("click", () => {
-      if (currentMobileReviewId) {
-        window.deleteReview(currentMobileReviewId);
-        reviewActionModal.classList.remove("active");
       }
     });
   }
@@ -3045,11 +3022,30 @@ document.addEventListener("DOMContentLoaded", () => {
         toggleAdminSidebar();
       }
 
+      if (btn.dataset.tab === "reviews") renderAdminReviews();
       if (btn.dataset.tab === "logs") renderLogs();
       if (btn.dataset.tab === "trash") renderTrash();
       if (btn.dataset.tab === "categories") renderAdminCategories();
     });
   });
+
+  // Toggle Reviews Visibility Button
+  const toggleReviewsBtn = document.getElementById("toggle-reviews-visibility-btn");
+  if (toggleReviewsBtn) {
+    toggleReviewsBtn.addEventListener("click", async () => {
+      if (!Firewall.isAdmin()) return;
+      const newState = !state.reviewsEnabled;
+      try {
+        await DB.setReviewsEnabled(newState);
+        showToast(newState ? "REVIEWS SECTION ENABLED." : "REVIEWS SECTION DISABLED.");
+        // Update button text
+        toggleReviewsBtn.innerHTML = `<i class="fa-solid fa-eye${newState ? "" : "-slash"}"></i> TOGGLE SECTION VISIBILITY`;
+      } catch (err) {
+        console.error("REVIEWS TOGGLE ERROR:", err);
+        showToast("FAILED TO TOGGLE REVIEWS VISIBILITY.");
+      }
+    });
+  }
 
   // 5.1 SECURITY SETTINGS LOGIC (RESTRICTED TO ADMIN)
   const securityUpdateForm = document.getElementById("security-update-form");
@@ -3254,7 +3250,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="product-view-details">
           <div>
-            <span class="product-view-brand">3DRIP</span>
+            <span class="product-view-brand">ZetSpace</span>
             <span class="product-view-category" style="margin-left: 1rem;">${categoryLabel}</span>
           </div>
           <h1 class="product-view-name">${product.name}</h1>
@@ -3264,7 +3260,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="product-view-description">
             <div class="product-view-description-label">About This Item</div>
-            <div class="product-view-description-text">${product.description || "Premium quality streetwear essential from the 3DRIP collection. Built for those who refuse to stay in the shadows. Each piece is crafted with precision and designed for the future."}</div>
+            <div class="product-view-description-text">${product.description || "Premium quality streetwear essential from the ZetSpace collection. Built for those who refuse to stay in the shadows. Each piece is crafted with precision and designed for the future."}</div>
           </div>
           <div class="product-view-qty">
             <label class="product-view-qty-label" for="pv-qty">Quantity</label>
@@ -3612,9 +3608,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", handleScrollReveal);
   setTimeout(handleScrollReveal, 500);
   window.addEventListener("scroll", () => {
-    const heroImg = document.querySelector(".hero-img");
+    const heroImg = document.querySelector(".hero-visual-img");
     if (heroImg)
-      heroImg.style.transform = `translateY(${window.pageYOffset * 0.4}px)`;
+      heroImg.style.transform = `translateY(${window.pageYOffset * 0.3}px)`;
   });
 
   // 8. PASSWORD VISIBILITY TOGGLE SYSTEM
@@ -3686,6 +3682,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(hideLoader, 4000);
 
   // Handle initial navigation state and hash query search
+  // NOTE: startListeners() will be called by onAuthStateChanged once Firebase is initialized
   handleHashNavigation();
   window.addEventListener("hashchange", handleHashNavigation);
   console.log("[SYSTEM] INITIALIZATION SEQUENCE TERMINATED.");
@@ -3693,8 +3690,116 @@ document.addEventListener("DOMContentLoaded", () => {
   // Slight delay for smooth entrance
   setTimeout(hideLoader, 1500);
 
-  // START LISTENERS LAST
-  startListeners();
+  // ===== REVIEWS INDEPENDENT INITIALIZATION (auth-independent) =====
+  // Start the reviews listener immediately so reviews appear on first page load
+  // without waiting for admin login. Uses setTimeout to ensure Firebase is ready.
+  setTimeout(() => {
+  try {
+    const reviewsRef = collection(db, "reviews");
+
+    const reviewsQuery = query(
+      reviewsRef,
+      where("status", "==", "PUBLISHED"),
+      orderBy("createdAt", "desc")
+    );
+
+    // ALWAYS reset listener (fix refresh/login bug)
+    if (activeListeners.reviews) {
+      activeListeners.reviews();
+      activeListeners.reviews = null;
+    }
+
+    activeListeners.reviews = onSnapshot(
+      reviewsQuery,
+      (snapshot) => {
+        state.reviews = snapshot.docs.map((d) => ({
+          ...d.data(),
+          id: d.id,
+        }));
+
+        renderPublicReviews();
+      },
+      (err) => {
+        console.warn("[SYSTEM] REVIEWS_LISTENER_ERR:", err.message);
+      }
+    );
+  } catch (e) {
+    console.warn("[SYSTEM] EARLY_REVIEWS_INIT_SKIPPED:", e);
+  }
+}, 100);
+
+  // ===== MOBILE FULLSCREEN SEARCH OVERLAY =====
+  const mobileSearchOverlay = document.getElementById("mobile-search-overlay");
+  const mobileSearchClose = document.getElementById("mobile-search-close");
+  const mobileSearchInput = document.getElementById("mobile-search-input");
+  const searchIconBtns = document.querySelectorAll(".search-icon-btn");
+
+  const openMobileSearch = () => {
+    if (!mobileSearchOverlay) return;
+    mobileSearchOverlay.classList.add("active");
+    mobileSearchOverlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    // Focus the input after animation
+    setTimeout(() => {
+      if (mobileSearchInput) mobileSearchInput.focus();
+    }, 350);
+  };
+
+  const closeMobileSearch = () => {
+    if (!mobileSearchOverlay) return;
+    mobileSearchOverlay.classList.remove("active");
+    mobileSearchOverlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    if (mobileSearchInput) mobileSearchInput.value = "";
+  };
+
+  // On mobile, clicking search icon opens the fullscreen overlay
+  // On desktop, it expands the inline search bar (existing behavior preserved)
+  if (searchIconBtns.length > 0 && mobileSearchOverlay) {
+    searchIconBtns.forEach((iconBtn) => {
+      iconBtn.addEventListener("click", (e) => {
+        // Only intercept for mobile widths
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          e.stopPropagation();
+          openMobileSearch();
+        }
+        // On desktop, the existing click handler in the expandable search code above will run
+      });
+    });
+  }
+
+  // Close mobile search
+  if (mobileSearchClose) {
+    mobileSearchClose.addEventListener("click", closeMobileSearch);
+  }
+
+  // Clicking overlay background closes it
+  if (mobileSearchOverlay) {
+    mobileSearchOverlay.addEventListener("click", (e) => {
+      if (e.target === mobileSearchOverlay || e.target.closest(".mobile-search-overlay-content") === null) {
+        closeMobileSearch();
+      }
+    });
+  }
+
+  // Handle Enter key in mobile search input
+  if (mobileSearchInput) {
+    mobileSearchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const query = String(mobileSearchInput.value || "").trim();
+        if (query) {
+          updateSearchQuery(query);
+          navigateToShopWithSearch(query);
+          closeMobileSearch();
+        }
+      }
+      if (e.key === "Escape") {
+        closeMobileSearch();
+      }
+    });
+  }
 
   // ===== MOBILE FILTER & SORT BOTTOM SHEETS =====
   const mobileFilterBtn = document.getElementById("mobile-filter-btn");
@@ -3712,12 +3817,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Helper function to open bottom sheet
   const openBottomSheet = (sheet) => {
+    sheet.classList.add("active");
     sheet.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
   };
 
   // Helper function to close bottom sheet
   const closeBottomSheet = (sheet) => {
+    sheet.classList.remove("active");
     sheet.classList.add("closing");
     setTimeout(() => {
       sheet.setAttribute("aria-hidden", "true");
@@ -3804,7 +3911,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Handle price slider update
+  // Desktop price slider handler
+  const desktopPriceSlider = document.getElementById("price-slider");
+  const desktopPriceValue = document.getElementById("price-value");
+  if (desktopPriceSlider && desktopPriceValue) {
+    desktopPriceSlider.addEventListener("input", (e) => {
+      const value = parseInt(e.target.value);
+      desktopPriceValue.textContent = new Intl.NumberFormat("fr-DZ").format(value);
+      maxPrice = value;
+      renderStore();
+    });
+  }
+
+  // Handle price slider update (mobile)
   if (mobilePriceSlider && mobilePriceValue) {
     mobilePriceSlider.addEventListener("input", (e) => {
       const value = parseInt(e.target.value);
@@ -3838,7 +3957,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       // Update current sort
-      currentSort = sortValue;
+      shopSortBy = sortValue;
       renderStore();
       closeBottomSheet(mobileSortSheet);
     });
