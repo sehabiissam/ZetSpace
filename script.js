@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const toast = document.createElement("div");
     toast.className = "toast";
     toast.innerHTML = `
-            <i class="fa-solid fa-bell" style="color: var(--accent);"></i>
+            <i class="fa-solid fa-bell" style="color: var(--bg);"></i>
             <span class="toast-msg">${msg}</span>
             ${actionText ? `<button class="undo-btn">${actionText}</button>` : ""}
         `;
@@ -437,7 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "featured",
       "about",
       "testimonials",
-      "newsletter",
+      "faq",
     ],
     shop: ["shop"],
     cart: ["cart"],
@@ -709,6 +709,7 @@ activeListeners.reviews = onSnapshot(
         }));
         renderCategoryOptions();
         renderCategoryFilterBar();
+        populateMobileCategories();
         renderStore();
 if (Firewall.isAdmin()) {
   renderAdminCategories();
@@ -1137,19 +1138,6 @@ if (Firewall.isAdmin()) {
     const { view, search } = parseHash(window.location.hash);
     if (search) {
       updateSearchQuery(search);
-      if (view === "shop") {
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname + "#shop",
-        );
-      } else {
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname + "#home",
-        );
-      }
     }
 
     const path = window.location.pathname.replace(/\/$/, "");
@@ -1406,7 +1394,7 @@ if (Firewall.isAdmin()) {
 
         return `
                 <tr class="admin-row-trigger" onclick="openCategoryDetail('${cat.id}')">
-                    <td><strong style="color:#fff;">${cat.name}</strong></td>
+                    <td><strong">${cat.name}</strong></td>
                     <td class="desktop-only">${productCount}</td>
                     <td>${createdAt}</td>
                     <td>
@@ -1724,6 +1712,7 @@ if (Firewall.isAdmin()) {
     const btn = e.target.closest(".wishlist-btn");
     if (btn) {
       e.preventDefault();
+      e.stopPropagation();
       const card = btn.closest(".product-card");
       if (!card) return;
       const product = {
@@ -1789,6 +1778,7 @@ if (Firewall.isAdmin()) {
     const buyNowBtn = e.target.closest(".buy-now-btn, .card-buy-now-btn");
     if (buyNowBtn) {
       e.preventDefault();
+      e.stopPropagation();
       const card = buyNowBtn.closest(".product-card") || buyNowBtn.closest("[data-id]");
       if (card) {
         const productId = card.dataset.id;
@@ -1798,6 +1788,26 @@ if (Firewall.isAdmin()) {
       }
       return;
     }
+  });
+
+  // Make entire product card clickable – navigate to product page
+  // Only triggers when the click did NOT originate from an action button
+  // (stopPropagation prevents this from firing on button clicks within the card)
+  document.body.addEventListener("click", (e) => {
+    // Skip if the click originated from an interactive element inside the card
+    if (
+      e.target.closest(".add-to-cart-btn, .add-to-cart, .wishlist-btn, .card-buy-now-btn, .buy-now-btn, .wishlist-add-cart")
+    ) return;
+
+    const card = e.target.closest(".product-card");
+    if (!card) return;
+
+    const productId = card.dataset.id;
+    if (!productId) return;
+
+    // Navigate to product page via hash
+    window.location.hash = `#product/${productId}`;
+    handleHashNavigation();
   });
 
   // Unified Add to Cart handler - handles all button types
@@ -3127,10 +3137,10 @@ if (Firewall.isAdmin()) {
         "featured",
         "about",
         "testimonials",
-        "newsletter",
+        "faq",
       ];
       if (homeSections.includes(view)) {
-        window.history.replaceState(
+        window.history.pushState(
           {},
           document.title,
           window.location.pathname + "#home",
@@ -3139,21 +3149,21 @@ if (Firewall.isAdmin()) {
         const el = document.getElementById(view);
         if (el) window.scrollTo({ top: el.offsetTop - 70, behavior: "smooth" });
       } else if (view === "shop") {
-        window.history.replaceState(
+        window.history.pushState(
           {},
           document.title,
           window.location.pathname + "#shop",
         );
         showView("shop");
       } else if (view === "reviews") {
-        window.history.replaceState(
+        window.history.pushState(
           {},
           document.title,
           window.location.pathname + "#reviews",
         );
         showView("reviews");
       } else if (view === "cart") {
-        window.history.replaceState(
+        window.history.pushState(
           {},
           document.title,
           window.location.pathname + "#cart",
@@ -3161,7 +3171,7 @@ if (Firewall.isAdmin()) {
         showView("cart");
         renderCart();
       } else if (view === "wishlist") {
-        window.history.replaceState(
+        window.history.pushState(
           {},
           document.title,
           window.location.pathname + "#wishlist",
@@ -3175,6 +3185,11 @@ if (Firewall.isAdmin()) {
   if (cartTrigger) {
     cartTrigger.addEventListener("click", () => {
       viewingCart = true;
+      window.history.pushState(
+        {},
+        document.title,
+        window.location.pathname + "#cart",
+      );
       showView("cart");
       renderCart();
     });
@@ -3274,7 +3289,7 @@ if (Firewall.isAdmin()) {
             <button class="btn btn-primary" id="pv-add-to-cart">
               <i class="fa-solid fa-cart-plus"></i> ADD TO CART — ${priceStr} DZD
             </button>
-            <button class="btn btn-outline buy-now-btn" id="pv-buy-now" style="border: 1px solid #a855f7 !important; color: #a855f7 !important;">
+            <button class="btn btn-outline buy-now-btn" id="pv-buy-now"">
               <i class="fa-solid fa-bolt"></i> BUY NOW
             </button>
           </div>
@@ -3613,57 +3628,6 @@ if (Firewall.isAdmin()) {
       heroImg.style.transform = `translateY(${window.pageYOffset * 0.3}px)`;
   });
 
-  // 8. PASSWORD VISIBILITY TOGGLE SYSTEM
-  const initPasswordToggles = () => {
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
-    passwordInputs.forEach((input) => {
-      // Skip if already has a toggle nearby
-      if (input.parentElement.classList.contains("password-wrapper")) return;
-
-      // Create wrapper
-      const wrapper = document.createElement("div");
-      wrapper.className = "password-wrapper";
-
-      // Insert wrapper before input, then move input inside
-      input.parentNode.insertBefore(wrapper, input);
-      wrapper.appendChild(input);
-
-      // Create toggle button
-      const toggleBtn = document.createElement("button");
-      toggleBtn.type = "button";
-      toggleBtn.className = "password-toggle";
-      toggleBtn.setAttribute("aria-label", "Toggle Password Visibility");
-      toggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-
-      wrapper.appendChild(toggleBtn);
-
-      toggleBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const type =
-          input.getAttribute("type") === "password" ? "text" : "password";
-        input.setAttribute("type", type);
-
-        // Update icon
-        const icon = toggleBtn.querySelector("i");
-        if (type === "text") {
-          icon.classList.remove("fa-eye");
-          icon.classList.add("fa-eye-slash");
-          toggleBtn.style.color = "var(--accent)";
-          toggleBtn.style.opacity = "1";
-        } else {
-          icon.classList.remove("fa-eye-slash");
-          icon.classList.add("fa-eye");
-          toggleBtn.style.color = "var(--text-secondary)";
-          toggleBtn.style.opacity = "0.6";
-        }
-      });
-    });
-  };
-
-  initPasswordToggles();
-  // Re-run whenever modals might be re-rendered or content changes if needed
-  window.addEventListener("viewChanged", initPasswordToggles);
-
   // HIDE LOADER - ENSURE SYSTEM ENTRANCE
   const hideLoader = () => {
     const loader = document.getElementById("app-loading");
@@ -3974,4 +3938,65 @@ if (Firewall.isAdmin()) {
       populateMobileCategories();
     };
   }
+
+  // ===== FAQ ACCORDION =====
+  const initFAQ = () => {
+    const faqItems = document.querySelectorAll('.faq-item');
+    if (!faqItems.length) return;
+    
+    faqItems.forEach((item) => {
+      const question = item.querySelector('.faq-question');
+      if (!question) return;
+      
+      question.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+        
+        // Close all items
+        faqItems.forEach((other) => {
+          other.classList.remove('active');
+          const otherBtn = other.querySelector('.faq-question');
+          if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+        });
+        
+        // Toggle clicked item
+        if (!isActive) {
+          item.classList.add('active');
+          question.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+  };
+  
+  initFAQ();
+  window.addEventListener('viewChanged', initFAQ);
+
+  // ===== PASSWORD SHOW/HIDE TOGGLE (Eye Button) =====
+  document.addEventListener('click', function (e) {
+    const toggleBtn = e.target.closest('.password-toggle-btn');
+    if (!toggleBtn) return;
+
+    const wrapper = toggleBtn.closest('.password-input-wrapper');
+    if (!wrapper) return;
+
+    const input = wrapper.querySelector('input[type="password"], input[type="text"]');
+    if (!input) return;
+
+    const icon = toggleBtn.querySelector('i');
+    const isPassword = input.getAttribute('type') === 'password';
+
+    if (isPassword) {
+      input.setAttribute('type', 'text');
+      if (icon) {
+        icon.className = 'fa-regular fa-eye-slash';
+      }
+      toggleBtn.setAttribute('aria-label', 'Hide password');
+    } else {
+      input.setAttribute('type', 'password');
+      if (icon) {
+        icon.className = 'fa-regular fa-eye';
+      }
+      toggleBtn.setAttribute('aria-label', 'Show password');
+    }
+  });
+
 });

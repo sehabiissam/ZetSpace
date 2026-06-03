@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "*.log"
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

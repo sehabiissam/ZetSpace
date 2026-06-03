@@ -115,6 +115,18 @@ service cloud.firestore {
       allow update: if isAdmin();
     }
 
+    // Newsletter Subscribers
+    // Public can create (subscribe), admin can read/list/delete
+    match /newsletter_subscribers/{subscriberId} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.email is string &&
+                       request.resource.data.email.size() > 0 &&
+                       request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+      allow delete: if isAdmin();
+      allow update: if false;
+      allow list: if isAdmin();
+    }
+
     // Connectivity Test
     match /test/connection {
       allow read: if true;

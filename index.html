@@ -20,7 +20,7 @@
     <!-- App Loading Overlay -->
     <div id="app-loading"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s ease;">
-        <img src="https://p16-common-sign.tiktokcdn.com/tos-maliva-avt-0068/732c74c8859bbf9848958c01faa80dff~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=14579&refresh_token=944b9dfd&x-expires=1780326000&x-signature=tY4C7%2BxBYRwQ0vI9CXwJ%2FlfIxHc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my2" alt="ZetSpace"
+        <img src="https://www.image2url.com/r2/default/images/1780496003405-789061b6-2212-4469-901d-a682a66c35f9.jpg" alt="ZetSpace"
             class="loading-logo logo-img"
             style="max-height: 110px; margin-bottom: 2rem; filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));">
         <div class="loading-bar-container"
@@ -40,8 +40,8 @@
     <!-- Navigation -->
     <nav class="nav">
         <div class="container nav-container">
-            <a href="/" class="nav-logo">
-                <img src="https://p16-common-sign.tiktokcdn.com/tos-maliva-avt-0068/732c74c8859bbf9848958c01faa80dff~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=14579&refresh_token=944b9dfd&x-expires=1780326000&x-signature=tY4C7%2BxBYRwQ0vI9CXwJ%2FlfIxHc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my2"
+            <a href="#home" class="nav-logo">
+                <img src="https://www.image2url.com/r2/default/images/1780496003405-789061b6-2212-4469-901d-a682a66c35f9.jpg"
                     alt="ZetSpace" class="logo-img">
             </a>
             <ul class="nav-links">
@@ -96,7 +96,7 @@
     <div class="mobile-menu" id="mobile-menu">
         <div class="mobile-menu-glass"></div>
         <div class="mobile-menu-header">
-            <img src="https://p16-common-sign.tiktokcdn.com/tos-maliva-avt-0068/732c74c8859bbf9848958c01faa80dff~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=14579&refresh_token=944b9dfd&x-expires=1780326000&x-signature=tY4C7%2BxBYRwQ0vI9CXwJ%2FlfIxHc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my2" alt="ZetSpace" class="mobile-menu-logo logo-img">
+            <img src="https://www.image2url.com/r2/default/images/1780496003405-789061b6-2212-4469-901d-a682a66c35f9.jpg" alt="ZetSpace" class="mobile-menu-logo logo-img">
             <button class="menu-close" id="menu-close">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -558,7 +558,12 @@
                 </div>
                 <div class="form-group">
                     <label>SYSTEM ACCESS KEY</label>
-                    <input type="password" id="admin-password" placeholder="ENCRYPTION KEY" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="admin-password" placeholder="ENCRYPTION KEY" required>
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" tabindex="-1">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-lock"></i> SYSTEM
                     LOGIN</button>
@@ -602,7 +607,8 @@
                     <button class="admin-nav-btn" data-tab="categories"><i class="fa-solid fa-layer-group"></i>
                         CATEGORIES</button>
                     <button class="admin-nav-btn" data-tab="reviews"><i class="fa-solid fa-star"></i> REVIEWS</button>
-                    <button class="admin-nav-btn" data-tab="trash"><i class="fa-solid fa-trash-can"></i> TRASH</button>
+                    <button class="admin-nav-btn" data-tab="trash"><i class="fa-solid fa-trash-can"></i>
+                        TRASH</button>
                     <button class="admin-nav-btn" data-tab="logs"><i class="fa-solid fa-clipboard-list"></i>
                         LOGS</button>
                     <button class="admin-nav-btn" data-tab="security"><i class="fa-solid fa-shield-halved"></i>
@@ -744,12 +750,22 @@
                             </p>
                             <div class="form-group">
                                 <label>CURRENT ACCESS KEY</label>
-                                <input type="password" id="current-pass" placeholder="CONFIRM CURRENT KEY" required>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="current-pass" placeholder="CONFIRM CURRENT KEY" required>
+                                    <button type="button" class="password-toggle-btn" aria-label="Show password" tabindex="-1">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>NEW ACCESS KEY</label>
-                                <input type="password" id="new-pass" placeholder="MIN 8 CHARACTERS" required
-                                    minlength="8">
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="new-pass" placeholder="MIN 8 CHARACTERS" required
+                                        minlength="8">
+                                    <button type="button" class="password-toggle-btn" aria-label="Show password" tabindex="-1">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary btn-full">EXECUTE ENCRYPTION UPDATE</button>
                             <p id="security-update-msg"
@@ -1073,7 +1089,7 @@
                 </div>
                 <div class="form-group">
                     <label>DESCRIPTION</label>
-                    <textarea id="p-description" placeholder="Enter product description..." style="font-family: var(--font-body); background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: #fff; resize: vertical; min-height: 80px;" ></textarea>
+                    <textarea id="p-description" placeholder="Enter product description..." style="font-family: var(--font-body); background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; resize: vertical; min-height: 80px;" ></textarea>
                 </div>
                 <div class="form-group">
                     <label>CATEGORY</label>
@@ -1204,15 +1220,66 @@
         </div>
     </section>
 
-    <!-- Newsletter -->
-    <section class="newsletter">
-        <div class="container newsletter-content">
-            <h3>STAY IN THE DRIP.</h3>
-            <p>Get early access to exclusive drops and secret events.</p>
-            <form class="newsletter-form">
-                <input type="email" placeholder="YOUR EMAIL ADDRESS" required>
-                <button type="submit" class="btn btn-primary">JOIN</button>
-            </form>
+    <!-- Premium FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="faq-header">
+                <h2 class="faq-title">QUESTIONS & ANSWERS</h2>
+            </div>
+            <div class="faq-layout">
+                <div class="faq-image-col">
+                    <img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=85&w=1200" 
+                         alt="Fashion" 
+                         class="faq-image">
+                </div>
+                <div class="faq-accordion-col">
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span>Delivery Time</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Delivery usually takes between 1–3 business days depending on your location.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span>Payment Method</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Cash on delivery. Pay only when you receive your order.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span>How do I track my order?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>After placing your order, our team will contact you and provide updates regarding your delivery.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span>Shipping Cost</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Shipping costs vary depending on the destination and will be confirmed during order processing.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span>Can I exchange a product?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Yes. Contact us after receiving your order and our team will assist you with the exchange process.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -1221,7 +1288,7 @@
         <div class="container footer-grid">
             <div class="footer-brand">
                 <div class="footer-logo">
-                    <img src="https://p16-common-sign.tiktokcdn.com/tos-maliva-avt-0068/732c74c8859bbf9848958c01faa80dff~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=14579&refresh_token=944b9dfd&x-expires=1780326000&x-signature=tY4C7%2BxBYRwQ0vI9CXwJ%2FlfIxHc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my2"
+                    <img src="https://www.image2url.com/r2/default/images/1780496003405-789061b6-2212-4469-901d-a682a66c35f9.jpg"
                         alt="ZetSpace" class="logo-img" style="max-height: 90px;">
                 </div>
                 <p>Pioneering the future of Algerian streetwear. Built for those who refuse to stay in the shadows.</p>
@@ -1251,7 +1318,9 @@
         </div>
         <div class="footer-bottom">
             <p>&copy; 2026 ZetSpace BOUTIQUE ONLINE. ALL RIGHTS RESERVED.</p>
-            <p>DESIGNED BY <a href="ehabiissam.github.io/sehabiissam-portfolio/leon.html" target="_blank" rel="noopener noreferrer">SEHABI ISSAM</a>.</p>
+            <p>DESIGNED BY <a class="portfolio-link" href="https://sehabiissam.github.io/sehabiissam-portfolio/leon.html" target="_blank" rel="noopener noreferrer">SEHABI ISSAM </a><span class="small-text">
+                <br>
+                (CLICK AT THE NAME TO VISIT MY PORTFOLIO)</span>.</p>
         </div>
     </footer>
 
